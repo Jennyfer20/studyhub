@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard — StudyHub</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="dashboard">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="logo">Study<span>Hub</span></div>
+
+        <div class="sidebar-section-label">Principal</div>
+        <ul class="sidebar-menu">
+            <li><a href="/dashboard" class="active"><i class="fa-solid fa-house"></i> Accueil</a></li>
+            <li><a href="#"><i class="fa-solid fa-book-open"></i> Documents</a></li>
+            <li><a href="#"><i class="fa-solid fa-magnifying-glass"></i> Recherche</a></li>
+        </ul>
+
+        <div class="sidebar-section-label">Communauté</div>
+        <ul class="sidebar-menu">
+            <li><a href="#"><i class="fa-solid fa-comments"></i> Forum</a></li>
+            <li><a href="#"><i class="fa-solid fa-users"></i> Groupes</a></li>
+            <li><a href="#"><i class="fa-solid fa-earth-africa"></i> Mode Global</a></li>
+        </ul>
+
+        <div class="sidebar-section-label">Compte</div>
+        <ul class="sidebar-menu">
+            <li><a href="#"><i class="fa-solid fa-briefcase"></i> Carrière</a></li>
+            <li><a href="#"><i class="fa-solid fa-circle-user"></i> Mon Profil</a></li>
+            <li><a href="#" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Déconnexion</a></li>
+        </ul>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+
+        <!-- HEADER -->
+        <div class="page-header" style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+                <h1>Bonjour, <span id="username" style="color:var(--primary);">Étudiant</span> 👋</h1>
+                <p>Bienvenue sur ton espace StudyHub</p>
+            </div>
+            <button class="btn btn-primary" onclick="document.getElementById('upload-section').scrollIntoView({behavior:'smooth'})">
+                <i class="fa-solid fa-upload"></i>
+                Déposer un document
+            </button>
+        </div>
+
+        <!-- STATS -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon" style="background:#EEF2FF;">
+                    <i class="fa-solid fa-file-lines" style="color:#4F46E5;"></i>
+                </div>
+                <div class="stat-info">
+                    <h3 id="doc-count">0</h3>
+                    <p>Documents disponibles</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background:#F0FDF4;">
+                    <i class="fa-solid fa-users" style="color:#10B981;"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>0</h3>
+                    <p>Groupes rejoints</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background:#FFF7ED;">
+                    <i class="fa-solid fa-comments" style="color:#F97316;"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>0</h3>
+                    <p>Discussions actives</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background:#FDF4FF;">
+                    <i class="fa-solid fa-trophy" style="color:#A855F7;"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>0</h3>
+                    <p>Points obtenus</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- DOCUMENTS RÉCENTS -->
+        <div class="card">
+            <div class="card-header">
+                <h2><i class="fa-solid fa-clock-rotate-left"></i> Documents récents</h2>
+                <a href="#" style="font-size:0.88rem; font-weight:600;">Voir tout <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+            <div id="documents-list">
+                <div style="text-align:center; padding:2rem; color:var(--text-light);">
+                    <i class="fa-solid fa-spinner fa-spin" style="font-size:1.5rem; margin-bottom:0.75rem; display:block;"></i>
+                    Chargement des documents...
+                </div>
+            </div>
+        </div>
+
+        <!-- UPLOAD -->
+        <div class="card" id="upload-section">
+            <div class="card-header">
+                <h2><i class="fa-solid fa-upload"></i> Déposer un document</h2>
+            </div>
+
+            <div id="upload-alert" class="alert" style="display:none;"></div>
+
+            <div class="form-group">
+                <label>Titre du document</label>
+                <input type="text" id="doc-title" placeholder="ex: Cours de Python — Chapitre 3">
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Catégorie</label>
+                    <select id="doc-category">
+                        <option value="cours">Cours</option>
+                        <option value="td">TD</option>
+                        <option value="examen">Examen</option>
+                        <option value="résumé">Résumé</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Niveau</label>
+                    <select id="doc-niveau">
+                        <option value="L1">Licence 1</option>
+                        <option value="L2">Licence 2</option>
+                        <option value="L3">Licence 3</option>
+                        <option value="M1">Master 1</option>
+                        <option value="M2">Master 2</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Fichier</label>
+                <div id="drop-zone" style="border:2px dashed var(--border); border-radius:var(--radius-sm);
+                     padding:2rem; text-align:center; cursor:pointer; transition:all 0.2s;"
+                     onclick="document.getElementById('doc-file').click()"
+                     ondragover="event.preventDefault(); this.style.borderColor='var(--primary)'"
+                     ondragleave="this.style.borderColor='var(--border)'"
+                     ondrop="handleDrop(event)">
+                    <i class="fa-solid fa-cloud-arrow-up" style="font-size:2rem; color:var(--primary); margin-bottom:0.5rem; display:block;"></i>
+                    <p style="color:var(--text-light); font-size:0.9rem;">
+                        Glisse ton fichier ici ou <strong style="color:var(--primary);">clique pour parcourir</strong>
+                    </p>
+                    <p style="color:var(--text-light); font-size:0.8rem; margin-top:0.25rem;">PDF, DOCX, JPG, PNG — max 16MB</p>
+                    <p id="file-name" style="color:var(--primary); font-weight:600; margin-top:0.5rem; display:none;"></p>
+                </div>
+                <input type="file" id="doc-file" accept=".pdf,.docx,.doc,.png,.jpg,.jpeg" style="display:none;" onchange="showFileName(this)">
+            </div>
+
+            <button class="btn btn-primary btn-lg" onclick="uploadDocument()">
+                <i class="fa-solid fa-cloud-arrow-up"></i>
+                Déposer le document
+            </button>
+        </div>
+
+    </main>
+</div>
+
+<script>
+    const token = localStorage.getItem('token');
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+
+    if (!token) window.location.href = '/login';
+
+    document.getElementById('username').textContent = user.username || 'Étudiant';
+
+    // ─── DOCUMENTS ─────────────────────────────────────────
+    async function loadDocuments() {
+        try {
+            const response = await fetch('/api/documents', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await response.json();
+            const list = document.getElementById('documents-list');
+            document.getElementById('doc-count').textContent = data.documents.length;
+
+            if (data.documents.length === 0) {
+                list.innerHTML = `
+                    <div style="text-align:center; padding:2.5rem; color:var(--text-light);">
+                        <i class="fa-solid fa-folder-open" style="font-size:2.5rem; margin-bottom:0.75rem; display:block; opacity:0.4;"></i>
+                        <p>Aucun document disponible pour le moment.</p>
+                        <p style="font-size:0.85rem;">Sois le premier à déposer un document !</p>
+                    </div>`;
+                return;
+            }
+
+            const categoryIcons = {
+                'cours': 'fa-book', 'td': 'fa-pen-ruler',
+                'examen': 'fa-file-circle-question', 'résumé': 'fa-list-ul'
+            };
+
+            const categoryColors = {
+                'cours': '#4F46E5', 'td': '#F97316',
+                'examen': '#EF4444', 'résumé': '#10B981'
+            };
+
+            list.innerHTML = data.documents.slice(0, 6).map(doc => `
+                <div style="display:flex; align-items:center; gap:1rem; padding:0.9rem 0;
+                            border-bottom:1px solid var(--border);">
+                    <div style="width:40px; height:40px; border-radius:10px; flex-shrink:0;
+                                background:${categoryColors[doc.category] || '#4F46E5'}15;
+                                display:flex; align-items:center; justify-content:center;">
+                        <i class="fa-solid ${categoryIcons[doc.category] || 'fa-file'}"
+                           style="color:${categoryColors[doc.category] || '#4F46E5'}; font-size:0.95rem;"></i>
+                    </div>
+                    <div style="flex:1; min-width:0;">
+                        <p style="font-weight:600; font-size:0.92rem; white-space:nowrap;
+                                  overflow:hidden; text-overflow:ellipsis;">${doc.title}</p>
+                        <p style="color:var(--text-light); font-size:0.8rem; margin-top:0.1rem;">
+                            <i class="fa-solid fa-user" style="margin-right:4px;"></i>${doc.author}
+                            &nbsp;·&nbsp;
+                            <i class="fa-solid fa-layer-group" style="margin-right:4px;"></i>${doc.niveau || 'N/A'}
+                        </p>
+                    </div>
+                    <span style="background:#F3F4F6; color:var(--text-light); padding:0.25rem 0.6rem;
+                                 border-radius:6px; font-size:0.75rem; font-weight:600; flex-shrink:0;">
+                        ${doc.file_type?.toUpperCase() || 'DOC'}
+                    </span>
+                </div>
+            `).join('');
+        } catch (err) {
+            document.getElementById('documents-list').innerHTML = `
+                <div style="text-align:center; padding:2rem; color:#EF4444;">
+                    <i class="fa-solid fa-triangle-exclamation" style="font-size:1.5rem; margin-bottom:0.5rem; display:block;"></i>
+                    Erreur de chargement des documents.
+                </div>`;
+        }
+    }
+
+    // ─── UPLOAD ────────────────────────────────────────────
+    function showFileName(input) {
+        const name = document.getElementById('file-name');
+        name.textContent = input.files[0]?.name || '';
+        name.style.display = input.files[0] ? 'block' : 'none';
+    }
+
+    function handleDrop(e) {
+        e.preventDefault();
+        const file = e.dataTransfer.files[0];
+        if (file) {
+            const input = document.getElementById('doc-file');
+            const dt = new DataTransfer();
+            dt.items.add(file);
+            input.files = dt.files;
+            showFileName(input);
+        }
+        document.getElementById('drop-zone').style.borderColor = 'var(--border)';
+    }
+
+    async function uploadDocument() {
+        const title = document.getElementById('doc-title').value;
+        const category = document.getElementById('doc-category').value;
+        const niveau = document.getElementById('doc-niveau').value;
+        const file = document.getElementById('doc-file').files[0];
+
+        if (!title || !file) {
+            showUploadAlert('Titre et fichier sont requis.', 'error');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('title', title);
+        formData.append('category', category);
+        formData.append('niveau', niveau);
+
+        try {
+            const response = await fetch('/api/documents/upload', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` },
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                showUploadAlert('Document déposé avec succès !', 'success');
+                document.getElementById('doc-title').value = '';
+                document.getElementById('doc-file').value = '';
+                document.getElementById('file-name').style.display = 'none';
+                loadDocuments();
+            } else {
+                showUploadAlert(data.error, 'error');
+            }
+        } catch (err) {
+            showUploadAlert("Erreur lors de l'upload.", 'error');
+        }
+    }
+
+    function showUploadAlert(message, type) {
+        const alert = document.getElementById('upload-alert');
+        alert.innerHTML = `<i class="fa-solid fa-${type === 'error' ? 'circle-exclamation' : 'circle-check'}"></i> ${message}`;
+        alert.className = `alert alert-${type}`;
+        alert.style.display = 'flex';
+        setTimeout(() => alert.style.display = 'none', 3000);
+    }
+
+    function logout() {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+    }
+
+    loadDocuments();
+</script>
+
+</body>
+</html>

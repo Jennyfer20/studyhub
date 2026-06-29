@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forum — StudyHub</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="dashboard">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="logo">Study<span>Hub</span></div>
+
+        <div class="sidebar-section-label">Principal</div>
+        <ul class="sidebar-menu">
+            <li><a href="/dashboard"><i class="fa-solid fa-house"></i> Accueil</a></li>
+            <li><a href="#"><i class="fa-solid fa-book-open"></i> Documents</a></li>
+            <li><a href="#"><i class="fa-solid fa-magnifying-glass"></i> Recherche</a></li>
+        </ul>
+
+        <div class="sidebar-section-label">Communauté</div>
+        <ul class="sidebar-menu">
+            <li><a href="/forum" class="active"><i class="fa-solid fa-comments"></i> Forum</a></li>
+            <li><a href="/groups"><i class="fa-solid fa-users"></i> Groupes</a></li>
+            <li><a href="#"><i class="fa-solid fa-earth-africa"></i> Mode Global</a></li>
+        </ul>
+
+        <div class="sidebar-section-label">Compte</div>
+        <ul class="sidebar-menu">
+            <li><a href="#"><i class="fa-solid fa-briefcase"></i> Carrière</a></li>
+            <li><a href="/profile"><i class="fa-solid fa-circle-user"></i> Mon Profil</a></li>
+            <li><a href="/messages"><i class="fa-solid fa-envelope"></i> Messages</a></li>
+            <li><a href="#" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Déconnexion</a></li>
+        </ul>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main-content">
+
+        <div class="page-header" style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+                <h1>Forum étudiant</h1>
+                <p>Pose tes questions, partage tes connaissances</p>
+            </div>
+            <button class="btn btn-primary" onclick="showNewPostModal()">
+                <i class="fa-solid fa-plus"></i>
+                Nouveau post
+            </button>
+        </div>
+
+        <!-- FILTRES -->
+        <div class="card" style="margin-bottom:1.5rem;">
+            <div style="display:flex; gap:1rem; flex-wrap:wrap; align-items:center;">
+                <div style="flex:1; min-width:200px; position:relative;">
+                    <i class="fa-solid fa-magnifying-glass" style="position:absolute; left:1rem;
+                       top:50%; transform:translateY(-50%); color:var(--text-light);"></i>
+                    <input type="text" id="search-input" placeholder="Rechercher un post..."
+                        style="width:100%; padding:0.65rem 1rem 0.65rem 2.5rem;
+                               border:1.5px solid var(--border); border-radius:8px;
+                               font-size:0.9rem; font-family:inherit;"
+                        oninput="filterPosts()">
+                </div>
+                <div style="display:flex; gap:0.5rem;">
+                    <button class="btn btn-outline filter-btn active" onclick="setFilter('all', this)">Tous</button>
+                    <button class="btn btn-outline filter-btn" onclick="setFilter('open', this)">
+                        <i class="fa-solid fa-circle-question"></i> Ouverts
+                    </button>
+                    <button class="btn btn-outline filter-btn" onclick="setFilter('resolved', this)">
+                        <i class="fa-solid fa-circle-check"></i> Résolus
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- LISTE DES POSTS -->
+        <div id="posts-list">
+            <div style="text-align:center; padding:3rem; color:var(--text-light);">
+                <i class="fa-solid fa-spinner fa-spin" style="font-size:2rem; display:block; margin-bottom:0.75rem;"></i>
+                Chargement des posts...
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<!-- MODAL NOUVEAU POST -->
+<div id="post-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5);
+     z-index:1000; align-items:center; justify-content:center;">
+    <div style="background:white; border-radius:var(--radius); padding:2rem;
+                width:100%; max-width:560px; margin:1rem;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+            <h2 style="font-size:1.2rem; font-weight:700;">Nouveau post</h2>
+            <button onclick="hideNewPostModal()" style="background:none; border:none; cursor:pointer;
+                    font-size:1.2rem; color:var(--text-light);">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <div id="modal-alert" class="alert" style="display:none;"></div>
+
+        <div class="form-group">
+            <label>Titre</label>
+            <input type="text" id="post-title" placeholder="Ex: Comment résoudre ce problème en Python ?">
+        </div>
+
+        <div class="form-group">
+            <label>Contenu</label>
+            <textarea id="post-content" rows="5"
+                style="width:100%; padding:0.75rem 1rem; border:1.5px solid var(--border);
+                       border-radius:8px; font-size:0.95rem; font-family:inherit; resize:vertical;"
+                placeholder="Décris ton problème ou ta question en détail..."></textarea>
+        </div>
+
+        <div style="display:flex; gap:1rem; justify-content:flex-end; margin-top:1rem;">
+            <button class="btn btn-outline" onclick="hideNewPostModal()">Annuler</button>
+            <button class="btn btn-primary" onclick="createPost()">
+                <i class="fa-solid fa-paper-plane"></i>
+                Publier
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL DÉTAIL POST -->
+<div id="detail-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5);
+     z-index:1000; align-items:center; justify-content:center; padding:1rem;">
+    <div style="background:white; border-radius:var(--radius); padding:2rem;
+                width:100%; max-width:700px; max-height:90vh; overflow-y:auto;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+            <h2 id="detail-title" style="font-size:1.2rem; font-weight:700; flex:1; margin-right:1rem;"></h2>
+            <button onclick="hideDetailModal()" style="background:none; border:none; cursor:pointer;
+                    font-size:1.2rem; color:var(--text-light);">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <p id="detail-content" style="color:var(--text-light); margin-bottom:1.5rem; line-height:1.7;"></p>
+        <div id="detail-meta" style="margin-bottom:1.5rem;"></div>
+
+        <h3 style="font-size:1rem; font-weight:700; margin-bottom:1rem;">
+            <i class="fa-solid fa-comments" style="color:var(--primary);"></i>
+            Réponses
+        </h3>
+        <div id="detail-replies" style="margin-bottom:1.5rem;"></div>
+
+        <div style="border-top:1px solid var(--border); padding-top:1rem;">
+            <div class="form-group">
+                <label>Ta réponse</label>
+                <textarea id="reply-content" rows="3"
+                    style="width:100%; padding:0.75rem 1rem; border:1.5px solid var(--border);
+                           border-radius:8px; font-size:0.95rem; font-family:inherit; resize:vertical;"
+                    placeholder="Écris ta réponse..."></textarea>
+            </div>
+            <button class="btn btn-primary" onclick="addReply()">
+                <i class="fa-solid fa-paper-plane"></i>
+                Répondre
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const token = localStorage.getItem('token');
+    if (!token) window.location.href = '/login';
+
+    let allPosts = [];
+    let currentFilter = 'all';
+    let currentPostId = null;
+
+    async function loadPosts() {
+        try {
+            const response = await fetch('/api/forum/posts', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await response.json();
+            allPosts = data.posts;
+            renderPosts(allPosts);
+        } catch (err) {
+            document.getElementById('posts-list').innerHTML = `
+                <div style="text-align:center; padding:2rem; color:#EF4444;">
+                    <i class="fa-solid fa-triangle-exclamation" style="font-size:1.5rem; display:block; margin-bottom:0.5rem;"></i>
+                    Erreur de chargement.
+                </div>`;
+        }
+    }
+
+    function renderPosts(posts) {
+        const list = document.getElementById('posts-list');
+
+        if (posts.length === 0) {
+            list.innerHTML = `
+                <div style="text-align:center; padding:3rem; color:var(--text-light);">
+                    <i class="fa-solid fa-comments" style="font-size:2.5rem; opacity:0.3; display:block; margin-bottom:0.75rem;"></i>
+                    <p>Aucun post pour le moment.</p>
+                    <p style="font-size:0.85rem;">Sois le premier à poser une question !</p>
+                </div>`;
+            return;
+        }
+
+        list.innerHTML = posts.map(post => `
+            <div class="card" style="margin-bottom:1rem; cursor:pointer; transition:all 0.2s;"
+                 onclick="openPost(${post.id})"
+                 onmouseover="this.style.boxShadow='var(--shadow-lg)'"
+                 onmouseout="this.style.boxShadow=''">
+                <div style="display:flex; gap:1rem; align-items:flex-start;">
+                    <div style="text-align:center; padding:0.5rem; min-width:50px;">
+                        <button onclick="event.stopPropagation(); votePost(${post.id}, 1)"
+                            style="background:none; border:none; cursor:pointer; color:var(--text-light); font-size:1rem;">
+                            <i class="fa-solid fa-chevron-up"></i>
+                        </button>
+                        <div style="font-weight:700; color:var(--primary);" id="votes-${post.id}">${post.votes}</div>
+                        <button onclick="event.stopPropagation(); votePost(${post.id}, -1)"
+                            style="background:none; border:none; cursor:pointer; color:var(--text-light); font-size:1rem;">
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </button>
+                    </div>
+                    <div style="flex:1;">
+                        <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.5rem;">
+                            ${post.is_resolved
+                                ? '<span style="background:#F0FDF4; color:#16A34A; padding:0.2rem 0.6rem; border-radius:50px; font-size:0.75rem; font-weight:600;"><i class="fa-solid fa-circle-check"></i> Résolu</span>'
+                                : '<span style="background:#EFF6FF; color:#2563EB; padding:0.2rem 0.6rem; border-radius:50px; font-size:0.75rem; font-weight:600;"><i class="fa-solid fa-circle-question"></i> Ouvert</span>'
+                            }
+                            ${post.matiere ? `<span style="background:var(--primary-light); color:var(--primary); padding:0.2rem 0.6rem; border-radius:50px; font-size:0.75rem; font-weight:600;">${post.matiere}</span>` : ''}
+                        </div>
+                        <h3 style="font-size:1rem; font-weight:700; margin-bottom:0.4rem;">${post.title}</h3>
+                        <p style="color:var(--text-light); font-size:0.88rem; line-height:1.5;">${post.content}</p>
+                        <div style="display:flex; gap:1rem; margin-top:0.75rem; color:var(--text-light); font-size:0.8rem;">
+                            <span><i class="fa-solid fa-user"></i> ${post.user}</span>
+                            <span><i class="fa-solid fa-comment"></i> ${post.replies_count} réponse(s)</span>
+                            <span><i class="fa-solid fa-clock"></i> ${new Date(post.created_at).toLocaleDateString('fr-FR')}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function filterPosts() {
+        const keyword = document.getElementById('search-input').value.toLowerCase();
+        let filtered = allPosts;
+
+        if (currentFilter === 'resolved') filtered = filtered.filter(p => p.is_resolved);
+        if (currentFilter === 'open') filtered = filtered.filter(p => !p.is_resolved);
+        if (keyword) filtered = filtered.filter(p =>
+            p.title.toLowerCase().includes(keyword) ||
+            p.content.toLowerCase().includes(keyword)
+        );
+
+        renderPosts(filtered);
+    }
+
+    function setFilter(filter, btn) {
+        currentFilter = filter;
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        filterPosts();
+    }
+
+    async function votePost(postId, vote) {
+        try {
+            const response = await fetch(`/api/forum/posts/${postId}/vote`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ vote })
+            });
+            const data = await response.json();
+            if (response.ok) {
+                document.getElementById(`votes-${postId}`).textContent = data.votes;
+                const post = allPosts.find(p => p.id === postId);
+                if (post) post.votes = data.votes;
+            }
+        } catch (err) { console.error(err); }
+    }
+
+    async function openPost(postId) {
+        currentPostId = postId;
+        try {
+            const response = await fetch(`/api/forum/posts/${postId}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const post = await response.json();
+
+            document.getElementById('detail-title').textContent = post.title;
+            document.getElementById('detail-content').textContent = post.content;
+            document.getElementById('detail-meta').innerHTML = `
+                <div style="display:flex; gap:1rem; flex-wrap:wrap; font-size:0.82rem; color:var(--text-light);">
+                    <span><i class="fa-solid fa-user"></i> ${post.user}</span>
+                    <span><i class="fa-solid fa-clock"></i> ${new Date(post.created_at).toLocaleDateString('fr-FR')}</span>
+                    ${post.is_resolved ? '<span style="color:#16A34A;"><i class="fa-solid fa-circle-check"></i> Résolu</span>' : ''}
+                </div>`;
+
+            const repliesDiv = document.getElementById('detail-replies');
+            if (post.replies.length === 0) {
+                repliesDiv.innerHTML = `<p style="color:var(--text-light); font-size:0.9rem;">Aucune réponse pour le moment.</p>`;
+            } else {
+                repliesDiv.innerHTML = post.replies.map(r => `
+                    <div style="padding:1rem; border-radius:8px; margin-bottom:0.75rem;
+                                background:${r.is_validated ? '#F0FDF4' : 'var(--bg)'};
+                                border:1px solid ${r.is_validated ? '#BBF7D0' : 'var(--border)'};">
+                        <p style="font-size:0.9rem; line-height:1.6; margin-bottom:0.5rem;">${r.content}</p>
+                        <div style="display:flex; justify-content:space-between; font-size:0.78rem; color:var(--text-light);">
+                            <span><i class="fa-solid fa-user"></i> ${r.user}</span>
+                            ${r.is_validated ? '<span style="color:#16A34A; font-weight:600;"><i class="fa-solid fa-circle-check"></i> Réponse validée</span>' : ''}
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            document.getElementById('detail-modal').style.display = 'flex';
+        } catch (err) { console.error(err); }
+    }
+
+    async function addReply() {
+        const content = document.getElementById('reply-content').value;
+        if (!content) return;
+
+        try {
+            const response = await fetch(`/api/forum/posts/${currentPostId}/replies`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ content })
+            });
+
+            if (response.ok) {
+                document.getElementById('reply-content').value = '';
+                openPost(currentPostId);
+                loadPosts();
+            }
+        } catch (err) { console.error(err); }
+    }
+
+    async function createPost() {
+        const title = document.getElementById('post-title').value;
+        const content = document.getElementById('post-content').value;
+
+        if (!title || !content) {
+            showModalAlert('Titre et contenu requis.', 'error');
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/forum/posts', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ title, content })
+            });
+
+            if (response.ok) {
+                hideNewPostModal();
+                document.getElementById('post-title').value = '';
+                document.getElementById('post-content').value = '';
+                loadPosts();
+            } else {
+                const data = await response.json();
+                showModalAlert(data.error, 'error');
+            }
+        } catch (err) { console.error(err); }
+    }
+
+    function showModalAlert(message, type) {
+        const alert = document.getElementById('modal-alert');
+        alert.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> ${message}`;
+        alert.className = `alert alert-${type}`;
+        alert.style.display = 'flex';
+    }
+
+    function showNewPostModal() { document.getElementById('post-modal').style.display = 'flex'; }
+    function hideNewPostModal() { document.getElementById('post-modal').style.display = 'none'; }
+    function hideDetailModal() { document.getElementById('detail-modal').style.display = 'none'; }
+
+    function logout() {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+    }
+
+    loadPosts();
+</script>
+
+</body>
+</html>

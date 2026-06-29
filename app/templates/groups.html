@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Groupes — StudyHub</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="dashboard">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="logo">Study<span>Hub</span></div>
+
+        <div class="sidebar-section-label">Principal</div>
+        <ul class="sidebar-menu">
+            <li><a href="/dashboard"><i class="fa-solid fa-house"></i> Accueil</a></li>
+            <li><a href="#"><i class="fa-solid fa-book-open"></i> Documents</a></li>
+            <li><a href="#"><i class="fa-solid fa-magnifying-glass"></i> Recherche</a></li>
+        </ul>
+
+        <div class="sidebar-section-label">Communauté</div>
+        <ul class="sidebar-menu">
+            <li><a href="/forum"><i class="fa-solid fa-comments"></i> Forum</a></li>
+            <li><a href="/groups" class="active"><i class="fa-solid fa-users"></i> Groupes</a></li>
+            <li><a href="#"><i class="fa-solid fa-earth-africa"></i> Mode Global</a></li>
+        </ul>
+
+        <div class="sidebar-section-label">Compte</div>
+        <ul class="sidebar-menu">
+            <li><a href="#"><i class="fa-solid fa-briefcase"></i> Carrière</a></li>
+            <li><a href="/profile"><i class="fa-solid fa-circle-user"></i> Mon Profil</a></li>
+            <li><a href="/messages"><i class="fa-solid fa-envelope"></i> Messages</a></li>
+            <li><a href="#" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Déconnexion</a></li>
+        </ul>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main-content">
+
+        <div class="page-header" style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+                <h1>Groupes</h1>
+                <p>Rejoins des groupes par matière, filière ou projet</p>
+            </div>
+            <button class="btn btn-primary" onclick="showCreateModal()">
+                <i class="fa-solid fa-plus"></i>
+                Créer un groupe
+            </button>
+        </div>
+
+        <!-- TABS -->
+        <div style="display:flex; gap:0.5rem; margin-bottom:1.5rem; border-bottom:2px solid var(--border); padding-bottom:0;">
+            <button class="tab-btn active" onclick="setTab('all', this)"
+                style="padding:0.6rem 1.2rem; border:none; background:none; cursor:pointer;
+                       font-weight:600; font-size:0.9rem; color:var(--primary);
+                       border-bottom:2px solid var(--primary); margin-bottom:-2px;">
+                Tous les groupes
+            </button>
+            <button class="tab-btn" onclick="setTab('mine', this)"
+                style="padding:0.6rem 1.2rem; border:none; background:none; cursor:pointer;
+                       font-weight:600; font-size:0.9rem; color:var(--text-light);
+                       border-bottom:2px solid transparent; margin-bottom:-2px;">
+                Mes groupes
+            </button>
+        </div>
+
+        <!-- FILTRES -->
+        <div style="display:flex; gap:0.5rem; margin-bottom:1.5rem; flex-wrap:wrap;">
+            <button class="type-btn active btn btn-primary" onclick="setType('all', this)" style="font-size:0.82rem; padding:0.4rem 1rem;">Tous</button>
+            <button class="type-btn btn btn-outline" onclick="setType('matiere', this)" style="font-size:0.82rem; padding:0.4rem 1rem;">
+                <i class="fa-solid fa-book"></i> Matière
+            </button>
+            <button class="type-btn btn btn-outline" onclick="setType('filiere', this)" style="font-size:0.82rem; padding:0.4rem 1rem;">
+                <i class="fa-solid fa-graduation-cap"></i> Filière
+            </button>
+            <button class="type-btn btn btn-outline" onclick="setType('projet', this)" style="font-size:0.82rem; padding:0.4rem 1rem;">
+                <i class="fa-solid fa-diagram-project"></i> Projet
+            </button>
+        </div>
+
+        <!-- GROUPES -->
+        <div id="groups-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(300px, 1fr)); gap:1.25rem;">
+            <div style="text-align:center; padding:3rem; color:var(--text-light); grid-column:1/-1;">
+                <i class="fa-solid fa-spinner fa-spin" style="font-size:2rem; display:block; margin-bottom:0.75rem;"></i>
+                Chargement des groupes...
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<!-- MODAL CRÉER GROUPE -->
+<div id="create-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5);
+     z-index:1000; align-items:center; justify-content:center;">
+    <div style="background:white; border-radius:var(--radius); padding:2rem;
+                width:100%; max-width:500px; margin:1rem;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+            <h2 style="font-size:1.2rem; font-weight:700;">Créer un groupe</h2>
+            <button onclick="hideCreateModal()" style="background:none; border:none; cursor:pointer; font-size:1.2rem; color:var(--text-light);">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <div class="form-group">
+            <label>Nom du groupe</label>
+            <input type="text" id="group-name" placeholder="ex: Groupe Python L2">
+        </div>
+
+        <div class="form-group">
+            <label>Description</label>
+            <textarea id="group-desc" rows="3"
+                style="width:100%; padding:0.75rem 1rem; border:1.5px solid var(--border);
+                       border-radius:8px; font-size:0.95rem; font-family:inherit; resize:vertical;"
+                placeholder="Décris l'objectif du groupe..."></textarea>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>Type</label>
+                <select id="group-type">
+                    <option value="matiere">Matière</option>
+                    <option value="filiere">Filière</option>
+                    <option value="projet">Projet</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Visibilité</label>
+                <select id="group-global">
+                    <option value="false">Campus uniquement</option>
+                    <option value="true">Global (toutes universités)</option>
+                </select>
+            </div>
+        </div>
+
+        <div style="display:flex; gap:1rem; justify-content:flex-end; margin-top:1rem;">
+            <button class="btn btn-outline" onclick="hideCreateModal()">Annuler</button>
+            <button class="btn btn-primary" onclick="createGroup()">
+                <i class="fa-solid fa-plus"></i>
+                Créer
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const token = localStorage.getItem('token');
+    if (!token) window.location.href = '/login';
+
+    let allGroups = [];
+    let myGroups = [];
+    let currentTab = 'all';
+    let currentType = 'all';
+
+    const typeIcons = {
+        'matiere': 'fa-book',
+        'filiere': 'fa-graduation-cap',
+        'projet': 'fa-diagram-project'
+    };
+
+    const typeColors = {
+        'matiere': '#4F46E5',
+        'filiere': '#10B981',
+        'projet': '#F97316'
+    };
+
+    async function loadGroups() {
+        try {
+            const [allRes, mineRes] = await Promise.all([
+                fetch('/api/groups', { headers: { 'Authorization': `Bearer ${token}` } }),
+                fetch('/api/groups/mine', { headers: { 'Authorization': `Bearer ${token}` } })
+            ]);
+
+            const allData = await allRes.json();
+            const mineData = await mineRes.json();
+
+            allGroups = allData.groups;
+            myGroups = mineData.groups;
+
+            renderGroups();
+        } catch (err) {
+            document.getElementById('groups-grid').innerHTML = `
+                <div style="text-align:center; padding:2rem; color:#EF4444; grid-column:1/-1;">
+                    <i class="fa-solid fa-triangle-exclamation" style="font-size:1.5rem; display:block; margin-bottom:0.5rem;"></i>
+                    Erreur de chargement.
+                </div>`;
+        }
+    }
+
+    function renderGroups() {
+        const grid = document.getElementById('groups-grid');
+        let groups = currentTab === 'mine' ? myGroups : allGroups;
+
+        if (currentType !== 'all') {
+            groups = groups.filter(g => g.type === currentType);
+        }
+
+        const myGroupIds = myGroups.map(g => g.id);
+
+        if (groups.length === 0) {
+            grid.innerHTML = `
+                <div style="text-align:center; padding:3rem; color:var(--text-light); grid-column:1/-1;">
+                    <i class="fa-solid fa-users" style="font-size:2.5rem; opacity:0.3; display:block; margin-bottom:0.75rem;"></i>
+                    <p>Aucun groupe trouvé.</p>
+                </div>`;
+            return;
+        }
+
+        grid.innerHTML = groups.map(g => {
+            const isMember = myGroupIds.includes(g.id);
+            const color = typeColors[g.type] || '#4F46E5';
+            const icon = typeIcons[g.type] || 'fa-users';
+
+            return `
+                <div class="card" style="transition:all 0.2s;"
+                     onmouseover="this.style.boxShadow='var(--shadow-lg)'"
+                     onmouseout="this.style.boxShadow=''">
+                    <div style="display:flex; align-items:center; gap:1rem; margin-bottom:1rem;">
+                        <div style="width:48px; height:48px; border-radius:12px;
+                                    background:${color}15; display:flex; align-items:center;
+                                    justify-content:center; flex-shrink:0;">
+                            <i class="fa-solid ${icon}" style="color:${color}; font-size:1.2rem;"></i>
+                        </div>
+                        <div style="flex:1;">
+                            <h3 style="font-size:1rem; font-weight:700;">${g.name}</h3>
+                            <span style="background:${color}15; color:${color}; padding:0.15rem 0.5rem;
+                                         border-radius:50px; font-size:0.75rem; font-weight:600;">
+                                ${g.type}
+                            </span>
+                        </div>
+                        ${g.is_global ? '<span style="background:#FFF7ED; color:#C2410C; padding:0.15rem 0.5rem; border-radius:50px; font-size:0.72rem; font-weight:600;"><i class="fa-solid fa-earth-africa"></i> Global</span>' : ''}
+                    </div>
+
+                    ${g.description ? `<p style="color:var(--text-light); font-size:0.88rem; margin-bottom:1rem; line-height:1.5;">${g.description}</p>` : ''}
+
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="color:var(--text-light); font-size:0.8rem;">
+                            <i class="fa-solid fa-users"></i> ${g.members_count} membre(s)
+                        </span>
+                        ${isMember
+                            ? `<button onclick="leaveGroup(${g.id})" class="btn btn-outline"
+                                style="font-size:0.82rem; padding:0.4rem 0.9rem; color:#EF4444; border-color:#EF4444;">
+                                <i class="fa-solid fa-right-from-bracket"></i> Quitter
+                               </button>`
+                            : `<button onclick="joinGroup(${g.id})" class="btn btn-primary"
+                                style="font-size:0.82rem; padding:0.4rem 0.9rem;">
+                                <i class="fa-solid fa-plus"></i> Rejoindre
+                               </button>`
+                        }
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    async function joinGroup(groupId) {
+        try {
+            const response = await fetch(`/api/groups/${groupId}/join`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (response.ok) loadGroups();
+        } catch (err) { console.error(err); }
+    }
+
+    async function leaveGroup(groupId) {
+        try {
+            const response = await fetch(`/api/groups/${groupId}/leave`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (response.ok) loadGroups();
+        } catch (err) { console.error(err); }
+    }
+
+    async function createGroup() {
+        const name = document.getElementById('group-name').value;
+        const description = document.getElementById('group-desc').value;
+        const type = document.getElementById('group-type').value;
+        const is_global = document.getElementById('group-global').value === 'true';
+
+        if (!name) return;
+
+        try {
+            const response = await fetch('/api/groups', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ name, description, type, is_global })
+            });
+
+            if (response.ok) {
+                hideCreateModal();
+                loadGroups();
+            }
+        } catch (err) { console.error(err); }
+    }
+
+    function setTab(tab, btn) {
+        currentTab = tab;
+        document.querySelectorAll('.tab-btn').forEach(b => {
+            b.style.color = 'var(--text-light)';
+            b.style.borderBottomColor = 'transparent';
+        });
+        btn.style.color = 'var(--primary)';
+        btn.style.borderBottomColor = 'var(--primary)';
+        renderGroups();
+    }
+
+    function setType(type, btn) {
+        currentType = type;
+        document.querySelectorAll('.type-btn').forEach(b => {
+            b.classList.remove('btn-primary');
+            b.classList.add('btn-outline');
+        });
+        btn.classList.add('btn-primary');
+        btn.classList.remove('btn-outline');
+        renderGroups();
+    }
+
+    function showCreateModal() { document.getElementById('create-modal').style.display = 'flex'; }
+    function hideCreateModal() { document.getElementById('create-modal').style.display = 'none'; }
+
+    function logout() {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+    }
+
+    loadGroups();
+</script>
+
+</body>
+</html>

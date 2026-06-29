@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudyHub — Plateforme académique africaine</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <div class="logo">Study<span>Hub</span></div>
+        <div class="navbar-links">
+            <a href="#features">Fonctionnalités</a>
+            <a href="#universities">Universités</a>
+            <a href="/login" class="btn btn-outline">Connexion</a>
+            <a href="/register" class="btn btn-primary">S'inscrire</a>
+        </div>
+        <div class="hamburger" onclick="toggleMenu()">
+            <i class="fa-solid fa-bars"></i>
+        </div>
+    </nav>
+
+    <!-- HERO -->
+    <section class="hero">
+        <div class="hero-badge">
+            <i class="fa-solid fa-globe-africa"></i>
+            Plateforme académique africaine
+        </div>
+        <h1>Centralise tes ressources.<br><span>Accélère ta réussite.</span></h1>
+        <p>StudyHub connecte les étudiants africains à des milliers de cours, TD et examens. Un seul espace pour apprendre, partager et progresser.</p>
+        <div class="hero-buttons">
+            <a href="/register" class="btn btn-success btn-lg">
+                <i class="fa-solid fa-rocket"></i>
+                Commencer gratuitement
+            </a>
+            <a href="#features" class="btn btn-ghost btn-lg">
+                Découvrir la plateforme
+                <i class="fa-solid fa-arrow-down"></i>
+            </a>
+        </div>
+        <div class="hero-stats">
+            <div class="hero-stat">
+                <strong>10K+</strong>
+                <span>Documents</span>
+            </div>
+            <div class="hero-stat-divider"></div>
+            <div class="hero-stat">
+                <strong>50+</strong>
+                <span>Universités</span>
+            </div>
+            <div class="hero-stat-divider"></div>
+            <div class="hero-stat">
+                <strong>5K+</strong>
+                <span>Étudiants</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- FEATURES -->
+    <section class="features" id="features">
+        <div class="section-label">Fonctionnalités</div>
+        <h2>Tout ce dont tu as besoin<br>pour réussir</h2>
+        <p class="section-subtitle">Une plateforme complète conçue pour les étudiants africains</p>
+
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon-wrap" style="background:#EEF2FF;">
+                    <i class="fa-solid fa-book-open" style="color:#4F46E5;"></i>
+                </div>
+                <h3>Bibliothèque collaborative</h3>
+                <p>Accède à des milliers de cours, TD et examens déposés par les étudiants de toutes les universités.</p>
+                <a href="/register" class="feature-link">Explorer <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon-wrap" style="background:#F0FDF4;">
+                    <i class="fa-solid fa-comments" style="color:#10B981;"></i>
+                </div>
+                <h3>Forum étudiant</h3>
+                <p>Pose tes questions, réponds à celles des autres et progresse grâce à l'entraide communautaire.</p>
+                <a href="/register" class="feature-link">Rejoindre <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon-wrap" style="background:#FFF7ED;">
+                    <i class="fa-solid fa-users" style="color:#F97316;"></i>
+                </div>
+                <h3>Groupes & Projets</h3>
+                <p>Rejoins des groupes par matière, filière ou projet et collabore avec tes camarades.</p>
+                <a href="/register" class="feature-link">Créer un groupe <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon-wrap" style="background:#FDF4FF;">
+                    <i class="fa-solid fa-robot" style="color:#A855F7;"></i>
+                </div>
+                <h3>Assistant IA</h3>
+                <p>Résumés automatiques, quiz personnalisés et chatbot pédagogique disponible 24h/24.</p>
+                <a href="/register" class="feature-link">Essayer <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon-wrap" style="background:#EFF6FF;">
+                    <i class="fa-solid fa-earth-africa" style="color:#3B82F6;"></i>
+                </div>
+                <h3>Mode Global</h3>
+                <p>Explore les ressources de toutes les universités africaines sans aucune restriction.</p>
+                <a href="/register" class="feature-link">Explorer <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon-wrap" style="background:#FFF1F2;">
+                    <i class="fa-solid fa-briefcase" style="color:#F43F5E;"></i>
+                </div>
+                <h3>Espace Carrière</h3>
+                <p>Trouve des stages, hackathons et opportunités professionnelles ciblées pour les étudiants.</p>
+                <a href="/register" class="feature-link">Voir les offres <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section style="background: linear-gradient(135deg, #4F46E5 0%, #3730A3 100%);
+                    padding: 5rem 2rem; text-align: center; color: white;">
+        <h2 style="font-size:2rem; font-weight:800; margin-bottom:1rem; letter-spacing:-0.5px;">
+            Prêt à booster ta réussite académique ?
+        </h2>
+        <p style="opacity:0.85; font-size:1.05rem; margin-bottom:2rem;">
+            Rejoins des milliers d'étudiants africains qui utilisent StudyHub chaque jour.
+        </p>
+        <a href="/register" class="btn btn-white btn-lg">
+            <i class="fa-solid fa-user-plus"></i>
+            Créer mon compte gratuitement
+        </a>
+    </section>
+
+    <!-- FOOTER -->
+    <footer style="background:#0F172A; color:#94A3B8; padding:3rem 2.5rem 0;">
+        <div style="display:grid; grid-template-columns:2fr 1fr 1fr; gap:3rem;
+                    max-width:1100px; margin:0 auto; padding-bottom:3rem;
+                    border-bottom:1px solid #1E293B;">
+            <div>
+                <div class="logo" style="color:white; margin-bottom:0.75rem;">Study<span>Hub</span></div>
+                <p style="font-size:0.9rem; line-height:1.6;">La plateforme académique made in Africa.</p>
+                <div style="display:flex; gap:0.75rem; margin-top:1rem;">
+                    <a href="#" style="width:36px; height:36px; background:#1E293B; border-radius:8px;
+                                       display:flex; align-items:center; justify-content:center;
+                                       color:#94A3B8; font-size:0.9rem;">
+                        <i class="fa-brands fa-twitter"></i>
+                    </a>
+                    <a href="#" style="width:36px; height:36px; background:#1E293B; border-radius:8px;
+                                       display:flex; align-items:center; justify-content:center;
+                                       color:#94A3B8; font-size:0.9rem;">
+                        <i class="fa-brands fa-linkedin"></i>
+                    </a>
+                    <a href="#" style="width:36px; height:36px; background:#1E293B; border-radius:8px;
+                                       display:flex; align-items:center; justify-content:center;
+                                       color:#94A3B8; font-size:0.9rem;">
+                        <i class="fa-brands fa-instagram"></i>
+                    </a>
+                </div>
+            </div>
+            <div>
+                <h4 style="color:white; font-size:0.9rem; font-weight:600; margin-bottom:1rem;">Plateforme</h4>
+                <a href="#" style="display:block; color:#94A3B8; font-size:0.88rem; margin-bottom:0.6rem;">Documents</a>
+                <a href="#" style="display:block; color:#94A3B8; font-size:0.88rem; margin-bottom:0.6rem;">Forum</a>
+                <a href="#" style="display:block; color:#94A3B8; font-size:0.88rem; margin-bottom:0.6rem;">Groupes</a>
+                <a href="#" style="display:block; color:#94A3B8; font-size:0.88rem; margin-bottom:0.6rem;">Carrière</a>
+            </div>
+            <div>
+                <h4 style="color:white; font-size:0.9rem; font-weight:600; margin-bottom:1rem;">Compte</h4>
+                <a href="/login" style="display:block; color:#94A3B8; font-size:0.88rem; margin-bottom:0.6rem;">Connexion</a>
+                <a href="/register" style="display:block; color:#94A3B8; font-size:0.88rem; margin-bottom:0.6rem;">Inscription</a>
+            </div>
+        </div>
+        <div style="text-align:center; padding:1.25rem 0; font-size:0.85rem; color:#475569;">
+            © 2025 StudyHub — Tous droits réservés
+        </div>
+    </footer>

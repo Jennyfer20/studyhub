@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Messages — StudyHub</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="dashboard">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="logo">Study<span>Hub</span></div>
+
+        <div class="sidebar-section-label">Principal</div>
+        <ul class="sidebar-menu">
+            <li><a href="/dashboard"><i class="fa-solid fa-house"></i> Accueil</a></li>
+            <li><a href="#"><i class="fa-solid fa-book-open"></i> Documents</a></li>
+            <li><a href="#"><i class="fa-solid fa-magnifying-glass"></i> Recherche</a></li>
+        </ul>
+
+        <div class="sidebar-section-label">Communauté</div>
+        <ul class="sidebar-menu">
+            <li><a href="/forum"><i class="fa-solid fa-comments"></i> Forum</a></li>
+            <li><a href="/groups"><i class="fa-solid fa-users"></i> Groupes</a></li>
+            <li><a href="#"><i class="fa-solid fa-earth-africa"></i> Mode Global</a></li>
+        </ul>
+
+        <div class="sidebar-section-label">Compte</div>
+        <ul class="sidebar-menu">
+            <li><a href="#"><i class="fa-solid fa-briefcase"></i> Carrière</a></li>
+            <li><a href="/profile"><i class="fa-solid fa-circle-user"></i> Mon Profil</a></li>
+            <li><a href="/messages" class="active"><i class="fa-solid fa-envelope"></i> Messages</a></li>
+            <li><a href="#" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Déconnexion</a></li>
+        </ul>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main-content" style="padding:0;">
+        <div style="display:grid; grid-template-columns:320px 1fr; height:100vh;">
+
+            <!-- LISTE DES CONVERSATIONS -->
+            <div style="border-right:1px solid var(--border); display:flex; flex-direction:column;">
+                <div style="padding:1.5rem; border-bottom:1px solid var(--border);">
+                    <h2 style="font-size:1.1rem; font-weight:700; margin-bottom:1rem;">Messages</h2>
+                    <div style="position:relative;">
+                        <i class="fa-solid fa-magnifying-glass" style="position:absolute; left:0.75rem;
+                           top:50%; transform:translateY(-50%); color:var(--text-light); font-size:0.85rem;"></i>
+                        <input type="text" placeholder="Rechercher..."
+                            style="width:100%; padding:0.6rem 1rem 0.6rem 2.2rem;
+                                   border:1.5px solid var(--border); border-radius:8px;
+                                   font-size:0.88rem; font-family:inherit;">
+                    </div>
+                </div>
+
+                <div id="conversations-list" style="flex:1; overflow-y:auto;">
+                    <div style="text-align:center; padding:2rem; color:var(--text-light);">
+                        <i class="fa-solid fa-spinner fa-spin" style="font-size:1.5rem; display:block; margin-bottom:0.5rem;"></i>
+                        Chargement...
+                    </div>
+                </div>
+
+                <div style="padding:1rem; border-top:1px solid var(--border);">
+                    <button class="btn btn-primary" style="width:100%;" onclick="showNewMessageModal()">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                        Nouveau message
+                    </button>
+                </div>
+            </div>
+
+            <!-- ZONE DE CHAT -->
+            <div style="display:flex; flex-direction:column;">
+                <div id="chat-header" style="padding:1.25rem 1.5rem; border-bottom:1px solid var(--border);
+                     display:flex; align-items:center; gap:1rem;">
+                    <div style="width:40px; height:40px; border-radius:50%; background:var(--primary-light);
+                                display:flex; align-items:center; justify-content:center; color:var(--primary);">
+                        <i class="fa-solid fa-user"></i>
+                    </div>
+                    <div>
+                        <h3 id="chat-username" style="font-size:1rem; font-weight:700;">Sélectionne une conversation</h3>
+                        <p style="color:var(--text-light); font-size:0.82rem;">StudyHub Messenger</p>
+                    </div>
+                </div>
+
+                <div id="chat-messages" style="flex:1; overflow-y:auto; padding:1.5rem;
+                     display:flex; flex-direction:column; gap:0.75rem; background:var(--bg);">
+                    <div style="text-align:center; color:var(--text-light); margin:auto;">
+                        <i class="fa-solid fa-comments" style="font-size:3rem; opacity:0.2; display:block; margin-bottom:1rem;"></i>
+                        <p>Sélectionne une conversation pour commencer</p>
+                    </div>
+                </div>
+
+                <div id="chat-input" style="padding:1rem 1.5rem; border-top:1px solid var(--border);
+                     display:flex; gap:0.75rem; align-items:center; background:white;">
+                    <input type="text" id="message-input" placeholder="Écris un message..."
+                        style="flex:1; padding:0.75rem 1rem; border:1.5px solid var(--border);
+                               border-radius:50px; font-size:0.9rem; font-family:inherit;"
+                        onkeypress="if(event.key==='Enter') sendMessage()">
+                    <button onclick="sendMessage()" class="btn btn-primary"
+                        style="border-radius:50%; width:44px; height:44px; padding:0;
+                               display:flex; align-items:center; justify-content:center;">
+                        <i class="fa-solid fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </main>
+</div>
+
+<!-- MODAL NOUVEAU MESSAGE -->
+<div id="new-msg-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5);
+     z-index:1000; align-items:center; justify-content:center;">
+    <div style="background:white; border-radius:var(--radius); padding:2rem;
+                width:100%; max-width:440px; margin:1rem;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+            <h2 style="font-size:1.2rem; font-weight:700;">Nouveau message</h2>
+            <button onclick="hideNewMessageModal()" style="background:none; border:none; cursor:pointer; font-size:1.2rem; color:var(--text-light);">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <div class="form-group">
+            <label>ID de l'utilisateur</label>
+            <input type="number" id="receiver-id" placeholder="ex: 2">
+        </div>
+
+        <div class="form-group">
+            <label>Message</label>
+            <textarea id="new-msg-content" rows="3"
+                style="width:100%; padding:0.75rem 1rem; border:1.5px solid var(--border);
+                       border-radius:8px; font-size:0.95rem; font-family:inherit; resize:vertical;"
+                placeholder="Ton message..."></textarea>
+        </div>
+
+        <div style="display:flex; gap:1rem; justify-content:flex-end;">
+            <button class="btn btn-outline" onclick="hideNewMessageModal()">Annuler</button>
+            <button class="btn btn-primary" onclick="sendNewMessage()">
+                <i class="fa-solid fa-paper-plane"></i>
+                Envoyer
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const token = localStorage.getItem('token');
+    const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+    if (!token) window.location.href = '/login';
+
+    let currentReceiverId = null;
+
+    async function loadConversations() {
+        try {
+            const response = await fetch('/api/messages', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await response.json();
+            const list = document.getElementById('conversations-list');
+
+            if (data.conversations.length === 0) {
+                list.innerHTML = `
+                    <div style="text-align:center; padding:2rem; color:var(--text-light);">
+                        <i class="fa-solid fa-inbox" style="font-size:2rem; opacity:0.3; display:block; margin-bottom:0.5rem;"></i>
+                        <p style="font-size:0.88rem;">Aucune conversation</p>
+                    </div>`;
+                return;
+            }
+
+            list.innerHTML = data.conversations.map(conv => `
+                <div onclick="openConversation(${conv.user.id}, '${conv.user.username}')"
+                     style="padding:1rem 1.5rem; cursor:pointer; border-bottom:1px solid var(--border);
+                            display:flex; align-items:center; gap:0.75rem; transition:background 0.15s;"
+                     onmouseover="this.style.background='var(--bg)'"
+                     onmouseout="this.style.background='white'">
+                    <div style="width:44px; height:44px; border-radius:50%; background:var(--primary-light);
+                                display:flex; align-items:center; justify-content:center;
+                                color:var(--primary); flex-shrink:0; font-weight:700;">
+                        ${conv.user.username.charAt(0).toUpperCase()}
+                    </div>
+                    <div style="flex:1; min-width:0;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <p style="font-weight:600; font-size:0.92rem;">${conv.user.username}</p>
+                            ${conv.unread_count > 0
+                                ? `<span style="background:var(--primary); color:white; border-radius:50px;
+                                              padding:0.1rem 0.5rem; font-size:0.72rem; font-weight:700;">
+                                      ${conv.unread_count}
+                                   </span>`
+                                : ''
+                            }
+                        </div>
+                        <p style="color:var(--text-light); font-size:0.82rem; white-space:nowrap;
+                                  overflow:hidden; text-overflow:ellipsis;">
+                            ${conv.last_message || 'Aucun message'}
+                        </p>
+                    </div>
+                </div>
+            `).join('');
+        } catch (err) { console.error(err); }
+    }
+
+    async function openConversation(userId, username) {
+        currentReceiverId = userId;
+        document.getElementById('chat-username').textContent = username;
+
+        try {
+            const response = await fetch(`/api/messages/${userId}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await response.json();
+            const chatDiv = document.getElementById('chat-messages');
+
+            if (data.messages.length === 0) {
+                chatDiv.innerHTML = `
+                    <div style="text-align:center; color:var(--text-light); margin:auto;">
+                        <p style="font-size:0.9rem;">Début de la conversation avec <strong>${username}</strong></p>
+                    </div>`;
+                return;
+            }
+
+            chatDiv.innerHTML = data.messages.map(msg => `
+                <div style="display:flex; justify-content:${msg.is_mine ? 'flex-end' : 'flex-start'};">
+                    <div style="max-width:65%; padding:0.75rem 1rem; border-radius:${msg.is_mine ? '18px 18px 4px 18px' : '18px 18px 18px 4px'};
+                                background:${msg.is_mine ? 'var(--primary)' : 'white'};
+                                color:${msg.is_mine ? 'white' : 'var(--text)'};
+                                box-shadow:var(--shadow-sm);">
+                        <p style="font-size:0.9rem; line-height:1.5;">${msg.content}</p>
+                        <p style="font-size:0.72rem; opacity:0.7; margin-top:0.3rem; text-align:right;">
+                            ${new Date(msg.created_at).toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'})}
+                            ${msg.is_mine ? `<i class="fa-solid fa-check${msg.is_read ? '-double' : ''}" style="margin-left:4px;"></i>` : ''}
+                        </p>
+                    </div>
+                </div>
+            `).join('');
+
+            chatDiv.scrollTop = chatDiv.scrollHeight;
+            loadConversations();
+        } catch (err) { console.error(err); }
+    }
+
+    async function sendMessage() {
+        if (!currentReceiverId) return;
+        const content = document.getElementById('message-input').value.trim();
+        if (!content) return;
+
+        try {
+            const response = await fetch('/api/messages', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ content, receiver_id: currentReceiverId })
+            });
+
+            if (response.ok) {
+                document.getElementById('message-input').value = '';
+                openConversation(currentReceiverId, document.getElementById('chat-username').textContent);
+            }
+        } catch (err) { console.error(err); }
+    }
+
+    async function sendNewMessage() {
+        const receiverId = parseInt(document.getElementById('receiver-id').value);
+        const content = document.getElementById('new-msg-content').value;
+
+        if (!receiverId || !content) return;
+
+        try {
+            const response = await fetch('/api/messages', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ content, receiver_id: receiverId })
+            });
+
+            if (response.ok) {
+                hideNewMessageModal();
+                loadConversations();
+            }
+        } catch (err) { console.error(err); }
+    }
+
+    function showNewMessageModal() { document.getElementById('new-msg-modal').style.display = 'flex'; }
+    function hideNewMessageModal() { document.getElementById('new-msg-modal').style.display = 'none'; }
+
+    function logout() {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+    }
+
+    loadConversations();
+</script>
+
+</body>
+</html>

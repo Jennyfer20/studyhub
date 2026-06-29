@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mon Profil — StudyHub</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="dashboard">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="logo">Study<span>Hub</span></div>
+
+        <div class="sidebar-section-label">Principal</div>
+        <ul class="sidebar-menu">
+            <li><a href="/dashboard"><i class="fa-solid fa-house"></i> Accueil</a></li>
+            <li><a href="#"><i class="fa-solid fa-book-open"></i> Documents</a></li>
+            <li><a href="#"><i class="fa-solid fa-magnifying-glass"></i> Recherche</a></li>
+        </ul>
+
+        <div class="sidebar-section-label">Communauté</div>
+        <ul class="sidebar-menu">
+            <li><a href="/forum"><i class="fa-solid fa-comments"></i> Forum</a></li>
+            <li><a href="/groups"><i class="fa-solid fa-users"></i> Groupes</a></li>
+            <li><a href="#"><i class="fa-solid fa-earth-africa"></i> Mode Global</a></li>
+        </ul>
+
+        <div class="sidebar-section-label">Compte</div>
+        <ul class="sidebar-menu">
+            <li><a href="#"><i class="fa-solid fa-briefcase"></i> Carrière</a></li>
+            <li><a href="/profile" class="active"><i class="fa-solid fa-circle-user"></i> Mon Profil</a></li>
+            <li><a href="/messages"><i class="fa-solid fa-envelope"></i> Messages</a></li>
+            <li><a href="#" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Déconnexion</a></li>
+        </ul>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+
+        <!-- PROFIL HEADER -->
+        <div class="card" style="margin-bottom:1.5rem;">
+            <div style="display:flex; align-items:center; gap:2rem; flex-wrap:wrap;">
+                <!-- PHOTO -->
+                <div style="position:relative;">
+                    <div id="avatar" style="width:100px; height:100px; border-radius:50%;
+                                background:var(--primary-light); display:flex; align-items:center;
+                                justify-content:center; font-size:2.5rem; color:var(--primary);
+                                overflow:hidden;">
+                        <i class="fa-solid fa-circle-user"></i>
+                    </div>
+                    <label for="photo-input" style="position:absolute; bottom:0; right:0;
+                           background:var(--primary); color:white; width:28px; height:28px;
+                           border-radius:50%; display:flex; align-items:center; justify-content:center;
+                           cursor:pointer; font-size:0.75rem;">
+                        <i class="fa-solid fa-camera"></i>
+                    </label>
+                    <input type="file" id="photo-input" accept="image/*" style="display:none;" onchange="uploadPhoto(this)">
+                </div>
+
+                <!-- INFOS -->
+                <div style="flex:1;">
+                    <h1 style="font-size:1.6rem; font-weight:800;" id="profile-username">—</h1>
+                    <p style="color:var(--text-light); margin-top:0.25rem;" id="profile-role">—</p>
+                    <div style="display:flex; gap:1rem; margin-top:0.75rem; flex-wrap:wrap;">
+                        <span id="profile-filiere" style="display:none; background:var(--primary-light);
+                              color:var(--primary); padding:0.3rem 0.75rem; border-radius:50px;
+                              font-size:0.82rem; font-weight:600;">
+                            <i class="fa-solid fa-graduation-cap"></i> —
+                        </span>
+                        <span id="profile-niveau" style="display:none; background:#F0FDF4;
+                              color:#16A34A; padding:0.3rem 0.75rem; border-radius:50px;
+                              font-size:0.82rem; font-weight:600;">
+                            <i class="fa-solid fa-layer-group"></i> —
+                        </span>
+                        <span id="profile-university" style="display:none; background:#FFF7ED;
+                              color:#C2410C; padding:0.3rem 0.75rem; border-radius:50px;
+                              font-size:0.82rem; font-weight:600;">
+                            <i class="fa-solid fa-building-columns"></i> —
+                        </span>
+                    </div>
+                </div>
+
+                <!-- STATS -->
+                <div style="display:flex; gap:2rem; text-align:center;">
+                    <div>
+                        <div style="font-size:1.6rem; font-weight:800; color:var(--primary);" id="stat-docs">0</div>
+                        <div style="font-size:0.8rem; color:var(--text-light);">Documents</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem;">
+
+            <!-- MODIFIER LE PROFIL -->
+            <div class="card">
+                <div class="card-header">
+                    <h2><i class="fa-solid fa-pen"></i> Modifier mon profil</h2>
+                </div>
+
+                <div id="edit-alert" class="alert" style="display:none;"></div>
+
+                <div class="form-group">
+                    <label>Bio</label>
+                    <textarea id="edit-bio" rows="3"
+                        style="width:100%; padding:0.75rem 1rem; border:1.5px solid var(--border);
+                               border-radius:8px; font-size:0.95rem; font-family:inherit; resize:vertical;"
+                        placeholder="Parle de toi en quelques mots..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Filière</label>
+                    <input type="text" id="edit-filiere" placeholder="ex: Informatique">
+                </div>
+
+                <div class="form-group">
+                    <label>Niveau</label>
+                    <select id="edit-niveau">
+                        <option value="">-- Niveau --</option>
+                        <option value="L1">Licence 1</option>
+                        <option value="L2">Licence 2</option>
+                        <option value="L3">Licence 3</option>
+                        <option value="M1">Master 1</option>
+                        <option value="M2">Master 2</option>
+                    </select>
+                </div>
+
+                <button class="btn btn-primary" onclick="updateProfile()">
+                    <i class="fa-solid fa-floppy-disk"></i>
+                    Sauvegarder
+                </button>
+            </div>
+
+            <!-- MES DOCUMENTS -->
+            <div class="card">
+                <div class="card-header">
+                    <h2><i class="fa-solid fa-file-lines"></i> Mes documents</h2>
+                    <a href="/dashboard" style="font-size:0.88rem; font-weight:600;">
+                        Déposer <i class="fa-solid fa-plus"></i>
+                    </a>
+                </div>
+                <div id="my-documents">
+                    <div style="text-align:center; padding:2rem; color:var(--text-light);">
+                        <i class="fa-solid fa-spinner fa-spin" style="font-size:1.5rem; display:block; margin-bottom:0.5rem;"></i>
+                        Chargement...
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+</div>
+
+<script>
+    const token = localStorage.getItem('token');
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    if (!token) window.location.href = '/login';
+
+    const roleLabels = {
+        'student': 'Étudiant',
+        'teacher': 'Enseignant',
+        'admin': 'Administrateur'
+    };
+
+    const roleColors = {
+        'student': '#4F46E5',
+        'teacher': '#10B981',
+        'admin': '#F97316'
+    };
+
+    async function loadProfile() {
+        try {
+            const response = await fetch('/api/profile', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await response.json();
+
+            document.getElementById('profile-username').textContent = data.username;
+            document.getElementById('profile-role').innerHTML = `
+                <span style="background:${roleColors[data.role]}15; color:${roleColors[data.role]};
+                             padding:0.2rem 0.6rem; border-radius:50px; font-size:0.82rem; font-weight:600;">
+                    ${roleLabels[data.role] || data.role}
+                </span>
+            `;
+            document.getElementById('stat-docs').textContent = data.documents_count || 0;
+
+            if (data.photo_url) {
+                document.getElementById('avatar').innerHTML = `<img src="${data.photo_url}" style="width:100%; height:100%; object-fit:cover;">`;
+            }
+
+            if (data.filiere) {
+                const el = document.getElementById('profile-filiere');
+                el.innerHTML = `<i class="fa-solid fa-graduation-cap"></i> ${data.filiere}`;
+                el.style.display = 'inline-flex';
+                document.getElementById('edit-filiere').value = data.filiere;
+            }
+
+            if (data.niveau) {
+                const el = document.getElementById('profile-niveau');
+                el.innerHTML = `<i class="fa-solid fa-layer-group"></i> ${data.niveau}`;
+                el.style.display = 'inline-flex';
+                document.getElementById('edit-niveau').value = data.niveau;
+            }
+
+            if (data.university) {
+                const el = document.getElementById('profile-university');
+                el.innerHTML = `<i class="fa-solid fa-building-columns"></i> ${data.university}`;
+                el.style.display = 'inline-flex';
+            }
+
+            if (data.bio) {
+                document.getElementById('edit-bio').value = data.bio;
+            }
+
+            // Documents
+            const docList = document.getElementById('my-documents');
+            if (!data.documents || data.documents.length === 0) {
+                docList.innerHTML = `
+                    <div style="text-align:center; padding:2rem; color:var(--text-light);">
+                        <i class="fa-solid fa-folder-open" style="font-size:2rem; opacity:0.4; display:block; margin-bottom:0.5rem;"></i>
+                        Aucun document déposé
+                    </div>`;
+            } else {
+                docList.innerHTML = data.documents.map(doc => `
+                    <div style="display:flex; align-items:center; gap:0.75rem;
+                                padding:0.75rem 0; border-bottom:1px solid var(--border);">
+                        <i class="fa-solid fa-file-pdf" style="color:var(--primary); font-size:1.1rem;"></i>
+                        <div style="flex:1;">
+                            <p style="font-weight:600; font-size:0.9rem;">${doc.title}</p>
+                            <p style="color:var(--text-light); font-size:0.78rem;">${doc.category || ''} · ${doc.niveau || ''}</p>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    async function updateProfile() {
+        const bio = document.getElementById('edit-bio').value;
+        const filiere = document.getElementById('edit-filiere').value;
+        const niveau = document.getElementById('edit-niveau').value;
+
+        try {
+            const response = await fetch('/api/profile', {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ bio, filiere, niveau })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                showAlert('edit-alert', 'Profil mis à jour avec succès !', 'success');
+                loadProfile();
+            } else {
+                showAlert('edit-alert', data.error, 'error');
+            }
+        } catch (err) {
+            showAlert('edit-alert', 'Erreur serveur.', 'error');
+        }
+    }
+
+    async function uploadPhoto(input) {
+        const file = input.files[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append('photo', file);
+
+        try {
+            const response = await fetch('/api/profile/photo', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` },
+                body: formData
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                document.getElementById('avatar').innerHTML =
+                    `<img src="${data.photo_url}" style="width:100%; height:100%; object-fit:cover;">`;
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    function showAlert(id, message, type) {
+        const alert = document.getElementById(id);
+        alert.innerHTML = `<i class="fa-solid fa-${type === 'error' ? 'circle-exclamation' : 'circle-check'}"></i> ${message}`;
+        alert.className = `alert alert-${type}`;
+        alert.style.display = 'flex';
+        setTimeout(() => alert.style.display = 'none', 3000);
+    }
+
+    function logout() {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+    }
+
+    loadProfile();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion — StudyHub</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div class="auth-container">
+        <div class="auth-card">
+
+            <div class="logo">Study<span>Hub</span></div>
+            <h2>Connecte-toi à ton compte</h2>
+
+            <div id="alert" class="alert" style="display:none;"></div>
+
+            <div class="form-group">
+                <label><i class="fa-solid fa-envelope" style="color:#6B7280; margin-right:6px;"></i>Email</label>
+                <input type="email" id="email" placeholder="ton@email.com">
+            </div>
+
+            <div class="form-group">
+                <label><i class="fa-solid fa-lock" style="color:#6B7280; margin-right:6px;"></i>Mot de passe</label>
+                <div style="position:relative;">
+                    <input type="password" id="password" placeholder="••••••••" style="padding-right:3rem;">
+                    <i class="fa-solid fa-eye" id="toggle-pwd"
+                       onclick="togglePassword()"
+                       style="position:absolute; right:1rem; top:50%; transform:translateY(-50%);
+                              cursor:pointer; color:#6B7280;"></i>
+                </div>
+            </div>
+
+            <button class="btn btn-primary btn-lg" style="width:100%; justify-content:center; margin-top:0.5rem;" onclick="login()">
+                <i class="fa-solid fa-arrow-right-to-bracket"></i>
+                Se connecter
+            </button>
+
+            <div class="auth-footer">
+                Pas encore de compte ? <a href="/register" style="font-weight:600;">S'inscrire</a>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        async function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            if (!email || !password) {
+                showAlert('Veuillez remplir tous les champs.', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    window.location.href = '/dashboard';
+                } else {
+                    showAlert(data.error, 'error');
+                }
+            } catch (err) {
+                showAlert('Erreur de connexion au serveur.', 'error');
+            }
+        }
+
+        function showAlert(message, type) {
+            const alert = document.getElementById('alert');
+            alert.innerHTML = `<i class="fa-solid fa-${type === 'error' ? 'circle-exclamation' : 'circle-check'}"></i> ${message}`;
+            alert.className = `alert alert-${type}`;
+            alert.style.display = 'flex';
+        }
+
+        function togglePassword() {
+            const pwd = document.getElementById('password');
+            const icon = document.getElementById('toggle-pwd');
+            if (pwd.type === 'password') {
+                pwd.type = 'text';
+                icon.className = 'fa-solid fa-eye-slash';
+            } else {
+                pwd.type = 'password';
+                icon.className = 'fa-solid fa-eye';
+            }
+        }
+
+        document.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') login();
+        });
+    </script>
+
+</body>
+</html>
