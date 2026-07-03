@@ -207,33 +207,28 @@
                  onclick="openPost(${post.id})"
                  onmouseover="this.style.boxShadow='var(--shadow-lg)'"
                  onmouseout="this.style.boxShadow=''">
-                <div style="display:flex; gap:1rem; align-items:flex-start;">
-                    <div style="text-align:center; padding:0.5rem; min-width:50px;">
-                        <button onclick="event.stopPropagation(); votePost(${post.id}, 1)"
-                            style="background:none; border:none; cursor:pointer; color:var(--text-light); font-size:1rem;">
-                            <i class="fa-solid fa-chevron-up"></i>
-                        </button>
-                        <div style="font-weight:700; color:var(--primary);" id="votes-${post.id}">${post.votes}</div>
-                        <button onclick="event.stopPropagation(); votePost(${post.id}, -1)"
-                            style="background:none; border:none; cursor:pointer; color:var(--text-light); font-size:1rem;">
-                            <i class="fa-solid fa-chevron-down"></i>
-                        </button>
+                <div>
+                    <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.5rem;">
+                        ${post.is_resolved
+                            ? '<span style="background:#F0FDF4; color:#16A34A; padding:0.2rem 0.6rem; border-radius:50px; font-size:0.75rem; font-weight:600;"><i class="fa-solid fa-circle-check"></i> Résolu</span>'
+                            : '<span style="background:#EFF6FF; color:#2563EB; padding:0.2rem 0.6rem; border-radius:50px; font-size:0.75rem; font-weight:600;"><i class="fa-solid fa-circle-question"></i> Ouvert</span>'
+                        }
+                        ${post.matiere ? `<span style="background:var(--primary-light); color:var(--primary); padding:0.2rem 0.6rem; border-radius:50px; font-size:0.75rem; font-weight:600;">${post.matiere}</span>` : ''}
                     </div>
-                    <div style="flex:1;">
-                        <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.5rem;">
-                            ${post.is_resolved
-                                ? '<span style="background:#F0FDF4; color:#16A34A; padding:0.2rem 0.6rem; border-radius:50px; font-size:0.75rem; font-weight:600;"><i class="fa-solid fa-circle-check"></i> Résolu</span>'
-                                : '<span style="background:#EFF6FF; color:#2563EB; padding:0.2rem 0.6rem; border-radius:50px; font-size:0.75rem; font-weight:600;"><i class="fa-solid fa-circle-question"></i> Ouvert</span>'
-                            }
-                            ${post.matiere ? `<span style="background:var(--primary-light); color:var(--primary); padding:0.2rem 0.6rem; border-radius:50px; font-size:0.75rem; font-weight:600;">${post.matiere}</span>` : ''}
-                        </div>
-                        <h3 style="font-size:1rem; font-weight:700; margin-bottom:0.4rem;">${post.title}</h3>
-                        <p style="color:var(--text-light); font-size:0.88rem; line-height:1.5;">${post.content}</p>
-                        <div style="display:flex; gap:1rem; margin-top:0.75rem; color:var(--text-light); font-size:0.8rem;">
-                            <span><i class="fa-solid fa-user"></i> ${post.user}</span>
-                            <span><i class="fa-solid fa-comment"></i> ${post.replies_count} réponse(s)</span>
-                            <span><i class="fa-solid fa-clock"></i> ${new Date(post.created_at).toLocaleDateString('fr-FR')}</span>
-                        </div>
+                    <h3 style="font-size:1rem; font-weight:700; margin-bottom:0.4rem;">${post.title}</h3>
+                    <p style="color:var(--text-light); font-size:0.88rem; line-height:1.5;">${post.content}</p>
+                    <div style="display:flex; align-items:center; gap:1.25rem; margin-top:0.85rem; color:var(--text-light); font-size:0.8rem;">
+                        <button onclick="event.stopPropagation(); toggleLike(${post.id})"
+                            id="like-btn-${post.id}" title="J'aime"
+                            style="background:none; border:none; cursor:pointer; display:flex; align-items:center;
+                                   gap:0.4rem; padding:0; font-size:0.8rem; font-weight:600;
+                                   color:${post.is_liked ? '#EF4444' : 'var(--text-light)'};">
+                            <i class="${post.is_liked ? 'fa-solid' : 'fa-regular'} fa-heart" style="font-size:0.95rem;"></i>
+                            <span id="likes-${post.id}">${post.likes_count}</span> J'aime
+                        </button>
+                        <span><i class="fa-solid fa-comment"></i> ${post.replies_count} réponse(s)</span>
+                        <span><i class="fa-solid fa-user"></i> ${post.user}</span>
+                        <span><i class="fa-solid fa-clock"></i> ${new Date(post.created_at).toLocaleDateString('fr-FR')}</span>
                     </div>
                 </div>
             </div>
@@ -261,21 +256,20 @@
         filterPosts();
     }
 
-    async function votePost(postId, vote) {
+    async function toggleLike(postId) {
         try {
-            const response = await fetch(`/api/forum/posts/${postId}/vote`, {
+            const response = await fetch(`/api/forum/posts/${postId}/like`, {
                 method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ vote })
+                headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await response.json();
             if (response.ok) {
-                document.getElementById(`votes-${postId}`).textContent = data.votes;
+                document.getElementById(`likes-${postId}`).textContent = data.likes_count;
+                const btn = document.getElementById(`like-btn-${postId}`);
+                btn.style.color = data.liked ? '#EF4444' : 'var(--text-light)';
+                btn.querySelector('i').className = (data.liked ? 'fa-solid' : 'fa-regular') + ' fa-heart';
                 const post = allPosts.find(p => p.id === postId);
-                if (post) post.votes = data.votes;
+                if (post) { post.is_liked = data.liked; post.likes_count = data.likes_count; }
             }
         } catch (err) { console.error(err); }
     }

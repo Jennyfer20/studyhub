@@ -19,7 +19,7 @@ from werkzeug.security import generate_password_hash
 
 from app import create_app, db
 from app.models import User, University, Filiere, Matiere, Document
-from app.routes.forum import ForumPost, ForumReply
+from app.routes.forum import ForumPost, ForumReply, PostLike
 from app.routes.groups import Group, GroupMember
 from app.routes.comments import Comment
 from app.routes.favorites import Favorite
@@ -30,7 +30,7 @@ DEMO_PASSWORD = 'demo1234'
 
 def wipe():
     """Efface toutes les données (pas le schéma)."""
-    for model in (Message, Favorite, Comment, ForumReply, ForumPost,
+    for model in (Message, Favorite, Comment, PostLike, ForumReply, ForumPost,
                   GroupMember, Group, Document, Matiere, Filiere, User, University):
         db.session.query(model).delete()
     db.session.commit()
@@ -148,6 +148,15 @@ def seed():
                        user_id=david.id, post_id=post1.id, votes=2),
             ForumReply(content='INNER = intersection, LEFT = tout à gauche + correspondances.',
                        user_id=chloe.id, post_id=post2.id, votes=4, is_validated=True),
+        ])
+
+        # ─── LIKES SUR LES POSTS ───────────────────────────────
+        db.session.add_all([
+            PostLike(user_id=bruno.id, post_id=post1.id),
+            PostLike(user_id=chloe.id, post_id=post1.id),
+            PostLike(user_id=david.id, post_id=post1.id),
+            PostLike(user_id=alice.id, post_id=post2.id),
+            PostLike(user_id=chloe.id, post_id=post2.id),
         ])
 
         # ─── GROUPES ───────────────────────────────────────────

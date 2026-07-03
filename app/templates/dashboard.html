@@ -70,7 +70,7 @@
                     <i class="fa-solid fa-users" style="color:#10B981;"></i>
                 </div>
                 <div class="stat-info">
-                    <h3>0</h3>
+                    <h3 id="group-count">0</h3>
                     <p>Groupes rejoints</p>
                 </div>
             </div>
@@ -79,17 +79,17 @@
                     <i class="fa-solid fa-comments" style="color:#F97316;"></i>
                 </div>
                 <div class="stat-info">
-                    <h3>0</h3>
+                    <h3 id="forum-count">0</h3>
                     <p>Discussions actives</p>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon" style="background:#FDF4FF;">
-                    <i class="fa-solid fa-trophy" style="color:#A855F7;"></i>
+                    <i class="fa-solid fa-heart" style="color:#A855F7;"></i>
                 </div>
                 <div class="stat-info">
-                    <h3>0</h3>
-                    <p>Points obtenus</p>
+                    <h3 id="fav-count">0</h3>
+                    <p>Mes favoris</p>
                 </div>
             </div>
         </div>
@@ -315,7 +315,29 @@
         window.location.href = '/login';
     }
 
+    // ─── STATISTIQUES ──────────────────────────────────────
+    async function loadStats() {
+        const headers = { 'Authorization': `Bearer ${token}` };
+        try {
+            const [groupsRes, forumRes, favRes] = await Promise.all([
+                fetch('/api/groups/mine', { headers }),
+                fetch('/api/forum/posts', { headers }),
+                fetch('/api/favorites', { headers })
+            ]);
+            const groups = await groupsRes.json();
+            const forum = await forumRes.json();
+            const fav = await favRes.json();
+
+            document.getElementById('group-count').textContent = groups.total ?? (groups.groups?.length || 0);
+            document.getElementById('forum-count').textContent = forum.total ?? (forum.posts?.length || 0);
+            document.getElementById('fav-count').textContent = fav.total ?? (fav.favorites?.length || 0);
+        } catch (err) {
+            console.error('Erreur chargement stats:', err);
+        }
+    }
+
     loadDocuments();
+    loadStats();
 </script>
 
 </body>

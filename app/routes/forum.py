@@ -38,6 +38,25 @@ class ForumReply(db.Model):
     user = db.relationship('User', backref='replies')
 
 
+class PostLike(db.Model):
+    __tablename__ = 'post_likes'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    post_id = db.Column(db.Integer, db.ForeignKey('forum_posts.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    user = db.relationship('User', backref='post_likes')
+    post = db.relationship(
+        'ForumPost',
+        backref=db.backref('likes', cascade='all, delete-orphan')
+    )
+
+    __table_args__ = (
+        db.UniqueConstraint('user_id', 'post_id', name='unique_post_like'),
+    )
+
+
 # ─── CRÉER UN POST ─────────────────────────────────────────
 @forum_bp.route('/api/forum/posts', methods=['POST'])
 @jwt_required()
@@ -74,6 +93,7 @@ def create_post():
 @forum_bp.route('/api/forum/posts', methods=['GET'])
 @jwt_required()
 def get_posts():
+    user_id = int(get_jwt_identity())
     matiere_id = request.args.get('matiere_id')
     keyword = request.args.get('q')
     is_resolved = request.args.get('resolved')
@@ -89,6 +109,9 @@ def get_posts():
 
     posts = query.order_by(ForumPost.created_at.desc()).all()
 
+    # Ensemble des posts likés par l'utilisateur courant
+    liked_ids = {l.post_id for l in PostLike.query.filter_by(user_id=user_id).all()}
+
     return jsonify({
         'posts': [{
             'id': p.id,
@@ -98,6 +121,8 @@ def get_posts():
             'matiere': p.matiere.name if p.matiere else None,
             'is_resolved': p.is_resolved,
             'votes': p.votes,
+            'likes_count': len(p.likes),
+            'is_liked': p.id in liked_ids,
             'replies_count': len(p.replies),
             'created_at': p.created_at.isoformat()
         } for p in posts],
@@ -109,7 +134,10 @@ def get_posts():
 @forum_bp.route('/api/forum/posts/<int:post_id>', methods=['GET'])
 @jwt_required()
 def get_post(post_id):
+    user_id = int(get_jwt_identity())
     post = ForumPost.query.get_or_404(post_id)
+
+    is_liked = PostLike.query.filter_by(user_id=user_id, post_id=post_id).first() is not None
 
     return jsonify({
         'id': post.id,
@@ -119,6 +147,8 @@ def get_post(post_id):
         'matiere': post.matiere.name if post.matiere else None,
         'is_resolved': post.is_resolved,
         'votes': post.votes,
+        'likes_count': len(post.likes),
+        'is_liked': is_liked,
         'replies': [{
             'id': r.id,
             'content': r.content,
@@ -143,6 +173,29 @@ def vote_post(post_id):
     db.session.commit()
 
     return jsonify({'votes': post.votes}), 200
+
+
+# ─── LIKER / UNLIKER UN POST ───────────────────────────────
+@forum_bp.route('/api/forum/posts/<int:post_id>/like', methods=['POST'])
+@jwt_required()
+def toggle_like(post_id):
+    user_id = int(get_jwt_identity())
+    ForumPost.query.get_or_404(post_id)
+
+    existing = PostLike.query.filter_by(user_id=user_id, post_id=post_id).first()
+
+    if existing:
+        db.session.delete(existing)
+        liked = False
+    else:
+        db.session.add(PostLike(user_id=user_id, post_id=post_id))
+        liked = True
+
+    db.session.commit()
+
+    likes_count = PostLike.query.filter_by(post_id=post_id).count()
+
+    return jsonify({'liked': liked, 'likes_count': likes_count}), 200
 
 
 # ─── AJOUTER UNE RÉPONSE ───────────────────────────────────
