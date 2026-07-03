@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documents — StudyHub</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="dashboard">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="logo">Study<span>Hub</span></div>
+
+        <div class="sidebar-section-label">Principal</div>
+        <ul class="sidebar-menu">
+            <li><a href="/dashboard"><i class="fa-solid fa-house"></i> Accueil</a></li>
+            <li><a href="/documents" class="active"><i class="fa-solid fa-book-open"></i> Documents</a></li>
+            <li><a href="/search"><i class="fa-solid fa-magnifying-glass"></i> Recherche</a></li>
+        </ul>
+
+        <div class="sidebar-section-label">Communauté</div>
+        <ul class="sidebar-menu">
+            <li><a href="/forum"><i class="fa-solid fa-comments"></i> Forum</a></li>
+            <li><a href="/groups"><i class="fa-solid fa-users"></i> Groupes</a></li>
+            <li><a href="/global"><i class="fa-solid fa-earth-africa"></i> Mode Global</a></li>
+        </ul>
+
+        <div class="sidebar-section-label">Compte</div>
+        <ul class="sidebar-menu">
+            <li><a href="/career"><i class="fa-solid fa-briefcase"></i> Carrière</a></li>
+            <li><a href="/profile"><i class="fa-solid fa-circle-user"></i> Mon Profil</a></li>
+            <li><a href="/messages"><i class="fa-solid fa-envelope"></i> Messages</a></li>
+            <li><a href="#" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Déconnexion</a></li>
+        </ul>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main-content">
+
+        <div class="page-header">
+            <h1>Documents</h1>
+            <p>Parcours toutes les ressources partagées</p>
+        </div>
+
+        <!-- FILTRES -->
+        <div style="display:flex; gap:1rem; margin-bottom:1.5rem; flex-wrap:wrap;">
+            <select id="filter-category" onchange="loadDocuments()"
+                style="padding:0.6rem 1rem; border:1.5px solid var(--border); border-radius:8px; font-size:0.9rem;">
+                <option value="">Toutes les catégories</option>
+                <option value="cours">Cours</option>
+                <option value="td">TD</option>
+                <option value="examen">Examen</option>
+                <option value="résumé">Résumé</option>
+            </select>
+            <select id="filter-niveau" onchange="loadDocuments()"
+                style="padding:0.6rem 1rem; border:1.5px solid var(--border); border-radius:8px; font-size:0.9rem;">
+                <option value="">Tous les niveaux</option>
+                <option value="L1">Licence 1</option>
+                <option value="L2">Licence 2</option>
+                <option value="L3">Licence 3</option>
+                <option value="M1">Master 1</option>
+                <option value="M2">Master 2</option>
+            </select>
+        </div>
+
+        <!-- LISTE -->
+        <div id="documents-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(300px, 1fr)); gap:1.25rem;">
+            <div style="text-align:center; padding:3rem; color:var(--text-light); grid-column:1/-1;">
+                <i class="fa-solid fa-spinner fa-spin" style="font-size:2rem; display:block; margin-bottom:0.75rem;"></i>
+                Chargement des documents...
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<script>
+    const token = localStorage.getItem('token');
+    if (!token) window.location.href = '/login';
+
+    const categoryIcons = {
+        'cours': 'fa-book', 'td': 'fa-pen-ruler',
+        'examen': 'fa-file-circle-question', 'résumé': 'fa-list-ul'
+    };
+    const categoryColors = {
+        'cours': '#4F46E5', 'td': '#F97316',
+        'examen': '#EF4444', 'résumé': '#10B981'
+    };
+
+    async function loadDocuments() {
+        const category = document.getElementById('filter-category').value;
+        const niveau = document.getElementById('filter-niveau').value;
+
+        const params = new URLSearchParams();
+        if (category) params.append('category', category);
+        if (niveau) params.append('niveau', niveau);
+
+        const grid = document.getElementById('documents-grid');
+        try {
+            const response = await fetch(`/api/documents?${params.toString()}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await response.json();
+
+            if (data.documents.length === 0) {
+                grid.innerHTML = `
+                    <div style="text-align:center; padding:3rem; color:var(--text-light); grid-column:1/-1;">
+                        <i class="fa-solid fa-folder-open" style="font-size:2.5rem; opacity:0.3; display:block; margin-bottom:0.75rem;"></i>
+                        <p>Aucun document trouvé.</p>
+                    </div>`;
+                return;
+            }
+
+            grid.innerHTML = data.documents.map(doc => {
+                const color = categoryColors[doc.category] || '#4F46E5';
+                const icon = categoryIcons[doc.category] || 'fa-file';
+                return `
+                    <div class="card">
+                        <div style="display:flex; align-items:center; gap:1rem; margin-bottom:1rem;">
+                            <div style="width:48px; height:48px; border-radius:12px; flex-shrink:0;
+                                        background:${color}15; display:flex; align-items:center; justify-content:center;">
+                                <i class="fa-solid ${icon}" style="color:${color}; font-size:1.2rem;"></i>
+                            </div>
+                            <div style="flex:1; min-width:0;">
+                                <h3 style="font-size:1rem; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${doc.title}</h3>
+                                <span style="color:var(--text-light); font-size:0.8rem;">
+                                    <i class="fa-solid fa-user"></i> ${doc.author}
+                                </span>
+                            </div>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span style="background:${color}15; color:${color}; padding:0.15rem 0.6rem;
+                                         border-radius:50px; font-size:0.75rem; font-weight:600;">
+                                ${doc.category || 'doc'} · ${doc.niveau || 'N/A'}
+                            </span>
+                            <a href="/api/documents/${doc.id}/download" class="btn btn-primary"
+                               style="font-size:0.82rem; padding:0.4rem 0.9rem;" onclick="return download(event, ${doc.id})">
+                                <i class="fa-solid fa-download"></i> Télécharger
+                            </a>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        } catch (err) {
+            grid.innerHTML = `
+                <div style="text-align:center; padding:2rem; color:#EF4444; grid-column:1/-1;">
+                    <i class="fa-solid fa-triangle-exclamation" style="font-size:1.5rem; display:block; margin-bottom:0.5rem;"></i>
+                    Erreur de chargement.
+                </div>`;
+        }
+    }
+
+    // Le téléchargement nécessite le token -> on récupère le fichier en fetch puis on force le download
+    async function download(event, docId) {
+        event.preventDefault();
+        try {
+            const res = await fetch(`/api/documents/${docId}/download`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!res.ok) return false;
+            const blob = await res.blob();
+            const disposition = res.headers.get('Content-Disposition') || '';
+            const match = disposition.match(/filename="?([^"]+)"?/);
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = match ? match[1] : 'document';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+        } catch (err) { console.error(err); }
+        return false;
+    }
+
+    function logout() {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+    }
+
+    loadDocuments();
+</script>
+
+</body>
+</html>

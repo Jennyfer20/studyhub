@@ -33,3 +33,19 @@ def groups():
 @pages_bp.route('/messages')
 def messages():
     return render_template('messages.html')
+
+@pages_bp.route('/documents')
+def documents():
+    return render_template('documents.html')
+
+@pages_bp.route('/search')
+def search():
+    return render_template('search.html')
+
+@pages_bp.route('/global')
+def global_mode():
+    return render_template('global.html')
+
+@pages_bp.route('/career')
+def career():
+    return render_template('career.html')

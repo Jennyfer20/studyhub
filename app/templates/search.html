@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recherche — StudyHub</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="dashboard">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="logo">Study<span>Hub</span></div>
+
+        <div class="sidebar-section-label">Principal</div>
+        <ul class="sidebar-menu">
+            <li><a href="/dashboard"><i class="fa-solid fa-house"></i> Accueil</a></li>
+            <li><a href="/documents"><i class="fa-solid fa-book-open"></i> Documents</a></li>
+            <li><a href="/search" class="active"><i class="fa-solid fa-magnifying-glass"></i> Recherche</a></li>
+        </ul>
+
+        <div class="sidebar-section-label">Communauté</div>
+        <ul class="sidebar-menu">
+            <li><a href="/forum"><i class="fa-solid fa-comments"></i> Forum</a></li>
+            <li><a href="/groups"><i class="fa-solid fa-users"></i> Groupes</a></li>
+            <li><a href="/global"><i class="fa-solid fa-earth-africa"></i> Mode Global</a></li>
+        </ul>
+
+        <div class="sidebar-section-label">Compte</div>
+        <ul class="sidebar-menu">
+            <li><a href="/career"><i class="fa-solid fa-briefcase"></i> Carrière</a></li>
+            <li><a href="/profile"><i class="fa-solid fa-circle-user"></i> Mon Profil</a></li>
+            <li><a href="/messages"><i class="fa-solid fa-envelope"></i> Messages</a></li>
+            <li><a href="#" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Déconnexion</a></li>
+        </ul>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main-content">
+
+        <div class="page-header">
+            <h1>Recherche</h1>
+            <p>Trouve rapidement un document par mot-clé</p>
+        </div>
+
+        <!-- BARRE DE RECHERCHE -->
+        <div style="position:relative; margin-bottom:2rem; max-width:600px;">
+            <i class="fa-solid fa-magnifying-glass"
+               style="position:absolute; left:1rem; top:50%; transform:translateY(-50%); color:var(--text-light);"></i>
+            <input type="text" id="search-input" placeholder="ex: Python, comptabilité, réseaux..."
+                   onkeyup="onSearchKey(event)"
+                   style="width:100%; padding:0.85rem 1rem 0.85rem 2.75rem; border:1.5px solid var(--border);
+                          border-radius:10px; font-size:0.95rem;">
+        </div>
+
+        <!-- RÉSULTATS -->
+        <div id="results">
+            <div style="text-align:center; padding:3rem; color:var(--text-light);">
+                <i class="fa-solid fa-keyboard" style="font-size:2.5rem; opacity:0.3; display:block; margin-bottom:0.75rem;"></i>
+                <p>Tape un mot-clé pour lancer la recherche.</p>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<script>
+    const token = localStorage.getItem('token');
+    if (!token) window.location.href = '/login';
+
+    let debounceTimer = null;
+
+    function onSearchKey(event) {
+        clearTimeout(debounceTimer);
+        const value = event.target.value.trim();
+        if (value.length === 0) {
+            document.getElementById('results').innerHTML = `
+                <div style="text-align:center; padding:3rem; color:var(--text-light);">
+                    <i class="fa-solid fa-keyboard" style="font-size:2.5rem; opacity:0.3; display:block; margin-bottom:0.75rem;"></i>
+                    <p>Tape un mot-clé pour lancer la recherche.</p>
+                </div>`;
+            return;
+        }
+        // On attend 300ms après la dernière frappe avant de chercher
+        debounceTimer = setTimeout(() => search(value), 300);
+    }
+
+    async function search(keyword) {
+        const results = document.getElementById('results');
+        results.innerHTML = `
+            <div style="text-align:center; padding:2rem; color:var(--text-light);">
+                <i class="fa-solid fa-spinner fa-spin" style="font-size:1.5rem; display:block; margin-bottom:0.5rem;"></i>
+                Recherche...
+            </div>`;
+        try {
+            const response = await fetch(`/api/documents/search?q=${encodeURIComponent(keyword)}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await response.json();
+
+            if (!data.results || data.results.length === 0) {
+                results.innerHTML = `
+                    <div style="text-align:center; padding:3rem; color:var(--text-light);">
+                        <i class="fa-solid fa-face-frown" style="font-size:2.5rem; opacity:0.3; display:block; margin-bottom:0.75rem;"></i>
+                        <p>Aucun résultat pour « ${keyword} ».</p>
+                    </div>`;
+                return;
+            }
+
+            results.innerHTML = `<p style="color:var(--text-light); font-size:0.88rem; margin-bottom:1rem;">
+                ${data.results.length} résultat(s) pour « ${keyword} »</p>` +
+                data.results.map(doc => `
+                    <div class="card" style="display:flex; align-items:center; gap:1rem; margin-bottom:0.75rem;">
+                        <div style="width:40px; height:40px; border-radius:10px; flex-shrink:0; background:#EEF2FF;
+                                    display:flex; align-items:center; justify-content:center;">
+                            <i class="fa-solid fa-file-lines" style="color:#4F46E5;"></i>
+                        </div>
+                        <div style="flex:1; min-width:0;">
+                            <p style="font-weight:600;">${doc.title}</p>
+                            <p style="color:var(--text-light); font-size:0.8rem;">
+                                <i class="fa-solid fa-user"></i> ${doc.author}
+                                &nbsp;·&nbsp; ${doc.category || 'doc'} · ${doc.niveau || 'N/A'}
+                            </p>
+                        </div>
+                        <button class="btn btn-primary" style="font-size:0.82rem; padding:0.4rem 0.9rem;"
+                                onclick="download(${doc.id})">
+                            <i class="fa-solid fa-download"></i>
+                        </button>
+                    </div>
+                `).join('');
+        } catch (err) {
+            results.innerHTML = `
+                <div style="text-align:center; padding:2rem; color:#EF4444;">
+                    <i class="fa-solid fa-triangle-exclamation" style="font-size:1.5rem; display:block; margin-bottom:0.5rem;"></i>
+                    Erreur de recherche.
+                </div>`;
+        }
+    }
+
+    async function download(docId) {
+        try {
+            const res = await fetch(`/api/documents/${docId}/download`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!res.ok) return;
+            const blob = await res.blob();
+            const disposition = res.headers.get('Content-Disposition') || '';
+            const match = disposition.match(/filename="?([^"]+)"?/);
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = match ? match[1] : 'document';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+        } catch (err) { console.error(err); }
+    }
+
+    function logout() {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+    }
+</script>
+
+</body>
+</html>

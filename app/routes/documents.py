@@ -77,6 +77,7 @@ def get_documents():
     niveau = request.args.get('niveau')
     matiere_id = request.args.get('matiere_id')
     keyword = request.args.get('q')
+    is_global = request.args.get('is_global')
 
     query = Document.query
 
@@ -88,6 +89,8 @@ def get_documents():
         query = query.filter_by(matiere_id=matiere_id)
     if keyword:
         query = query.filter(Document.title.ilike(f'%{keyword}%'))
+    if is_global is not None:
+        query = query.filter_by(is_global=is_global == 'true')
 
     documents = query.order_by(Document.created_at.desc()).all()
 

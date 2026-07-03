@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mode Global — StudyHub</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="dashboard">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="logo">Study<span>Hub</span></div>
+
+        <div class="sidebar-section-label">Principal</div>
+        <ul class="sidebar-menu">
+            <li><a href="/dashboard"><i class="fa-solid fa-house"></i> Accueil</a></li>
+            <li><a href="/documents"><i class="fa-solid fa-book-open"></i> Documents</a></li>
+            <li><a href="/search"><i class="fa-solid fa-magnifying-glass"></i> Recherche</a></li>
+        </ul>
+
+        <div class="sidebar-section-label">Communauté</div>
+        <ul class="sidebar-menu">
+            <li><a href="/forum"><i class="fa-solid fa-comments"></i> Forum</a></li>
+            <li><a href="/groups"><i class="fa-solid fa-users"></i> Groupes</a></li>
+            <li><a href="/global" class="active"><i class="fa-solid fa-earth-africa"></i> Mode Global</a></li>
+        </ul>
+
+        <div class="sidebar-section-label">Compte</div>
+        <ul class="sidebar-menu">
+            <li><a href="/career"><i class="fa-solid fa-briefcase"></i> Carrière</a></li>
+            <li><a href="/profile"><i class="fa-solid fa-circle-user"></i> Mon Profil</a></li>
+            <li><a href="/messages"><i class="fa-solid fa-envelope"></i> Messages</a></li>
+            <li><a href="#" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Déconnexion</a></li>
+        </ul>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main-content">
+
+        <div class="page-header">
+            <h1><i class="fa-solid fa-earth-africa" style="color:var(--primary);"></i> Mode Global</h1>
+            <p>Ressources partagées entre toutes les universités</p>
+        </div>
+
+        <!-- LISTE -->
+        <div id="documents-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(300px, 1fr)); gap:1.25rem;">
+            <div style="text-align:center; padding:3rem; color:var(--text-light); grid-column:1/-1;">
+                <i class="fa-solid fa-spinner fa-spin" style="font-size:2rem; display:block; margin-bottom:0.75rem;"></i>
+                Chargement des ressources globales...
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<script>
+    const token = localStorage.getItem('token');
+    if (!token) window.location.href = '/login';
+
+    const categoryIcons = {
+        'cours': 'fa-book', 'td': 'fa-pen-ruler',
+        'examen': 'fa-file-circle-question', 'résumé': 'fa-list-ul'
+    };
+    const categoryColors = {
+        'cours': '#4F46E5', 'td': '#F97316',
+        'examen': '#EF4444', 'résumé': '#10B981'
+    };
+
+    async function loadGlobal() {
+        const grid = document.getElementById('documents-grid');
+        try {
+            const response = await fetch('/api/documents?is_global=true', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await response.json();
+
+            if (data.documents.length === 0) {
+                grid.innerHTML = `
+                    <div style="text-align:center; padding:3rem; color:var(--text-light); grid-column:1/-1;">
+                        <i class="fa-solid fa-earth-africa" style="font-size:2.5rem; opacity:0.3; display:block; margin-bottom:0.75rem;"></i>
+                        <p>Aucune ressource globale pour le moment.</p>
+                        <p style="font-size:0.85rem;">Coche « Global » en déposant un document pour le partager ici.</p>
+                    </div>`;
+                return;
+            }
+
+            grid.innerHTML = data.documents.map(doc => {
+                const color = categoryColors[doc.category] || '#4F46E5';
+                const icon = categoryIcons[doc.category] || 'fa-file';
+                return `
+                    <div class="card">
+                        <div style="display:flex; align-items:center; gap:1rem; margin-bottom:1rem;">
+                            <div style="width:48px; height:48px; border-radius:12px; flex-shrink:0;
+                                        background:${color}15; display:flex; align-items:center; justify-content:center;">
+                                <i class="fa-solid ${icon}" style="color:${color}; font-size:1.2rem;"></i>
+                            </div>
+                            <div style="flex:1; min-width:0;">
+                                <h3 style="font-size:1rem; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${doc.title}</h3>
+                                <span style="color:var(--text-light); font-size:0.8rem;">
+                                    <i class="fa-solid fa-user"></i> ${doc.author}
+                                </span>
+                            </div>
+                            <span style="background:#FFF7ED; color:#C2410C; padding:0.15rem 0.5rem;
+                                         border-radius:50px; font-size:0.72rem; font-weight:600;">
+                                <i class="fa-solid fa-earth-africa"></i> Global
+                            </span>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span style="background:${color}15; color:${color}; padding:0.15rem 0.6rem;
+                                         border-radius:50px; font-size:0.75rem; font-weight:600;">
+                                ${doc.category || 'doc'} · ${doc.niveau || 'N/A'}
+                            </span>
+                            <button class="btn btn-primary" style="font-size:0.82rem; padding:0.4rem 0.9rem;"
+                                    onclick="download(${doc.id})">
+                                <i class="fa-solid fa-download"></i> Télécharger
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        } catch (err) {
+            grid.innerHTML = `
+                <div style="text-align:center; padding:2rem; color:#EF4444; grid-column:1/-1;">
+                    <i class="fa-solid fa-triangle-exclamation" style="font-size:1.5rem; display:block; margin-bottom:0.5rem;"></i>
+                    Erreur de chargement.
+                </div>`;
+        }
+    }
+
+    async function download(docId) {
+        try {
+            const res = await fetch(`/api/documents/${docId}/download`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!res.ok) return;
+            const blob = await res.blob();
+            const disposition = res.headers.get('Content-Disposition') || '';
+            const match = disposition.match(/filename="?([^"]+)"?/);
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = match ? match[1] : 'document';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+        } catch (err) { console.error(err); }
+    }
+
+    function logout() {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+    }
+
+    loadGlobal();
+</script>
+
+</body>
+</html>

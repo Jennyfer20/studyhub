@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carrière — StudyHub</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="dashboard">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="logo">Study<span>Hub</span></div>
+
+        <div class="sidebar-section-label">Principal</div>
+        <ul class="sidebar-menu">
+            <li><a href="/dashboard"><i class="fa-solid fa-house"></i> Accueil</a></li>
+            <li><a href="/documents"><i class="fa-solid fa-book-open"></i> Documents</a></li>
+            <li><a href="/search"><i class="fa-solid fa-magnifying-glass"></i> Recherche</a></li>
+        </ul>
+
+        <div class="sidebar-section-label">Communauté</div>
+        <ul class="sidebar-menu">
+            <li><a href="/forum"><i class="fa-solid fa-comments"></i> Forum</a></li>
+            <li><a href="/groups"><i class="fa-solid fa-users"></i> Groupes</a></li>
+            <li><a href="/global"><i class="fa-solid fa-earth-africa"></i> Mode Global</a></li>
+        </ul>
+
+        <div class="sidebar-section-label">Compte</div>
+        <ul class="sidebar-menu">
+            <li><a href="/career" class="active"><i class="fa-solid fa-briefcase"></i> Carrière</a></li>
+            <li><a href="/profile"><i class="fa-solid fa-circle-user"></i> Mon Profil</a></li>
+            <li><a href="/messages"><i class="fa-solid fa-envelope"></i> Messages</a></li>
+            <li><a href="#" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Déconnexion</a></li>
+        </ul>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main-content">
+
+        <div class="page-header">
+            <h1><i class="fa-solid fa-briefcase" style="color:var(--primary);"></i> Espace Carrière</h1>
+            <p>Stages, emplois, hackathons et opportunités pour étudiants</p>
+        </div>
+
+        <div class="card" style="text-align:center; padding:4rem 2rem;">
+            <div style="width:80px; height:80px; border-radius:50%; background:#EEF2FF; margin:0 auto 1.5rem;
+                        display:flex; align-items:center; justify-content:center;">
+                <i class="fa-solid fa-rocket" style="font-size:2rem; color:var(--primary);"></i>
+            </div>
+            <h2 style="font-size:1.4rem; font-weight:700; margin-bottom:0.75rem;">🚧 Bientôt disponible</h2>
+            <p style="color:var(--text-light); max-width:480px; margin:0 auto 2rem; line-height:1.6;">
+                L'espace Carrière arrive dans une prochaine phase du projet. Tu pourras y trouver des offres
+                de stages et d'emplois, des hackathons, et valoriser tes compétences auprès des recruteurs.
+            </p>
+
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(160px, 1fr)); gap:1rem; max-width:600px; margin:0 auto;">
+                <div style="padding:1.25rem; border:1px solid var(--border); border-radius:12px;">
+                    <i class="fa-solid fa-file-contract" style="font-size:1.5rem; color:#4F46E5; margin-bottom:0.5rem;"></i>
+                    <p style="font-weight:600; font-size:0.9rem;">Offres de stages</p>
+                </div>
+                <div style="padding:1.25rem; border:1px solid var(--border); border-radius:12px;">
+                    <i class="fa-solid fa-trophy" style="font-size:1.5rem; color:#F97316; margin-bottom:0.5rem;"></i>
+                    <p style="font-weight:600; font-size:0.9rem;">Hackathons</p>
+                </div>
+                <div style="padding:1.25rem; border:1px solid var(--border); border-radius:12px;">
+                    <i class="fa-solid fa-award" style="font-size:1.5rem; color:#10B981; margin-bottom:0.5rem;"></i>
+                    <p style="font-weight:600; font-size:0.9rem;">Badges & CV</p>
+                </div>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<script>
+    const token = localStorage.getItem('token');
+    if (!token) window.location.href = '/login';
+
+    function logout() {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+    }
+</script>
+
+</body>
+</html>
